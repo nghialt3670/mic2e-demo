@@ -869,7 +869,8 @@
         const { Canvas, FabricImage, Group, Circle, Rect, Path, Point } = fabric;
         
         // Standalone mode - no external services needed
-        const API_BASE_URL = window.location.origin;
+        // Support basepath for reverse proxy (e.g., /chat2edit)
+        const API_BASE_URL = window.location.origin + '/chat2edit';
 
         // ===== State Management =====
         const state = {

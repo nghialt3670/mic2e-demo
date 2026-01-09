@@ -9,7 +9,8 @@ from app.routes.health_routes import router as health_router
 app = FastAPI(
     title="MIC2E Demo",
     description="Simple demo for MIC2E image editing chatbot",
-    lifespan=lifespan
+    lifespan=lifespan,
+    root_path="/chat2edit"  # Support basepath for reverse proxy
 )
 
 # CORS middleware for API calls
