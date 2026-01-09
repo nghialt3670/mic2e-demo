@@ -1,0 +1,61 @@
+from typing import Any, Dict, List, Literal, Optional
+
+from chat2edit import Chat2EditConfig
+from chat2edit.models import ChatCycle
+from pydantic import BaseModel, Field
+
+from app.env import GOOGLE_API_KEY
+
+
+class AttachmentModel(BaseModel):
+    """Attachment with inline content (no file IDs, no storage needed)"""
+    filename: str
+    content: Dict[str, Any]  # Fig object as JSON
+
+
+class MessageModel(BaseModel):
+    text: str
+    attachments: List[AttachmentModel] = Field(default_factory=list)
+
+
+class LlmConfig(BaseModel):
+    provider: Literal["openai", "google"] = Field(default="google")
+    api_key: Optional[str] = Field(default=None)
+    model: str
+    params: Dict[str, Any] = Field(default_factory=dict)
+
+
+DEFAULT_LLM_CONFIG = LlmConfig(
+    provider="google", api_key=GOOGLE_API_KEY, model="gemini-2.5-flash", params={}
+)
+
+
+DEFAULT_CHAT2EDIT_CONFIG = Chat2EditConfig(
+    max_prompt_cycles=5,
+    max_llm_exchanges=2,
+)
+
+
+class Chat2EditGenerateRequestModel(BaseModel):
+    llm_config: LlmConfig = Field(default=DEFAULT_LLM_CONFIG)
+    chat2edit_config: Chat2EditConfig = Field(default=DEFAULT_CHAT2EDIT_CONFIG)
+    message: MessageModel
+    history: List[ChatCycle] = Field(default=[])
+    context: Optional[Dict[str, Any]] = Field(default=None)  # Inline context, no file ID
+
+
+class Chat2EditGenerateResponseModel(BaseModel):
+    message: Optional[MessageModel] = Field(default=None)
+    cycle: ChatCycle
+    context: Dict[str, Any]  # Inline context returned to browser
+
+
+class Chat2EditProgressEventModel(BaseModel):
+    type: Literal[
+        "request", "prompt", "answer", "extract", "execute", "complete", "error"
+    ]
+    message: Optional[str] = Field(default=None)
+    # Use Any here because some callbacks currently publish strings or other
+    # non-dict payloads (e.g. reprs) into `data`. The frontend already treats
+    # this as an opaque JSON-like value.
+    data: Optional[Any] = Field(default=None)

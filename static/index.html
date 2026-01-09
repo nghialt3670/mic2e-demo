@@ -1,0 +1,2516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIC2E Demo - Image Editing Chatbot</title>
+    <script src="https://cdn.jsdelivr.net/npm/fabric@6.0.2/dist/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+        }
+
+        /* Mobile layout */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+
+        /* Canvas Section */
+        .canvas-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #e0e0e0;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .canvas-section {
+                border-left: none;
+                border-top: 1px solid #e0e0e0;
+                order: 2;
+                min-height: 400px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .canvas-section {
+                order: 2;
+            }
+        }
+
+        .canvas-header {
+            padding: 20px;
+            background: #fafafa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .canvas-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .canvas-header p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .chat-header p {
+            font-size: 14px;
+            color: #666;
+            margin: 4px 0 0 0;
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: auto;
+            background: #fafafa;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: white;
+        }
+
+        @media (max-width: 768px) {
+            .canvas-wrapper {
+                max-width: 100%;
+            }
+        }
+
+        #canvas {
+            cursor: crosshair;
+        }
+
+        @media (max-width: 768px) {
+            #canvas {
+                max-width: 100%;
+                height: auto !important;
+            }
+        }
+
+        .canvas-gallery {
+            padding: 15px 20px;
+            background: #fafafa;
+            border-top: 1px solid #e0e0e0;
+            max-height: 150px;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .gallery-title {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .gallery-items {
+            display: flex;
+            gap: 10px;
+        }
+
+        .gallery-item {
+            position: relative;
+            cursor: pointer;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 3px solid #ddd;
+            transition: all 0.2s;
+            background: white;
+            flex-shrink: 0;
+        }
+
+        .gallery-item:hover {
+            border-color: #007bff;
+            transform: scale(1.05);
+        }
+
+        .gallery-item.active {
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.2);
+        }
+
+        .gallery-item canvas {
+            display: block;
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+        }
+
+        .gallery-item-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .gallery-item:hover .gallery-item-remove {
+            opacity: 1;
+        }
+
+        .gallery-item-remove:hover {
+            background: rgb(220, 53, 69);
+        }
+
+        .canvas-controls {
+            padding: 24.5px;
+            background: #fafafa;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .canvas-controls {
+                flex-wrap: wrap;
+                padding: 10px 15px;
+            }
+            
+            .canvas-controls .btn {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        .btn.primary {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+            align-self: stretch;
+        }
+
+        .btn.primary:hover {
+            background: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Chat Section */
+        .chat-section {
+            width: 500px;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            .chat-section {
+                width: 100%;
+                order: 1;
+                max-height: 50vh;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .chat-section {
+                order: 1;
+            }
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: #fafafa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .chat-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            margin-bottom: 4px;
+        }
+
+
+        .chat-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .toggle-config-btn {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            align-self: stretch;
+        }
+
+        .toggle-config-btn:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        .toggle-config-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .session-controls {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .session-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .session-btn:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        .session-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        label.session-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+
+        #loadFileInput {
+            display: none;
+        }
+
+        .config-panel {
+            padding: 12px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            display: none;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+        }
+
+        .config-panel.visible {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .config-panel {
+                padding: 10px;
+                font-size: 12px;
+            }
+            
+            .config-input, .config-select {
+                font-size: 12px;
+                padding: 5px 8px;
+            }
+        }
+
+        .config-group {
+            margin-bottom: 12px;
+        }
+
+        .config-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .config-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .config-select {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+            background: white;
+        }
+
+        .config-select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .config-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .config-row .config-group {
+            flex: 1;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .cycle {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 90%;
+        }
+
+        .message-group.user {
+            align-self: flex-end;
+            align-items: flex-end;
+            margin-left: auto;
+        }
+
+        .message-group.assistant {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+        }
+
+        .message.user {
+            background: #007bff;
+            color: white;
+        }
+
+        .message.assistant {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .message.error {
+            background: #fee;
+            color: #c00;
+            border: 1px solid #fcc;
+        }
+
+        .progress-container {
+            margin: 8px 0;
+        }
+
+        .progress-header {
+            font-size: 12px;
+            color: #666;
+            padding: 6px 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .progress-header:hover {
+            background: #e8e8e8;
+        }
+
+        .progress-header .toggle-icon {
+            font-size: 10px;
+            transition: transform 0.2s;
+        }
+
+        .progress-header .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .progress-events {
+            margin-top: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .progress-events.collapsed {
+            display: none;
+        }
+
+        .progress-item {
+            font-size: 13px;
+            background: #f9f9f9;
+            border-left: 3px solid #007bff;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-item.complete {
+            border-left-color: #28a745;
+        }
+
+        .progress-item.error {
+            border-left-color: #dc3545;
+        }
+
+        .progress-item-header {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+            color: #666;
+        }
+
+        .progress-item-header:hover {
+            background: #f0f0f0;
+        }
+
+        .progress-item-icon {
+            font-size: 10px;
+            transition: transform 0.2s;
+        }
+
+        .progress-item-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .progress-item-data {
+            padding: 8px 12px;
+            background: #fff;
+            border-top: 1px solid #e0e0e0;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            color: #333;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .progress-item-data.collapsed {
+            display: none;
+        }
+
+        .attachment-preview {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .attachment-item {
+            position: relative;
+            cursor: pointer;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .attachment-item:hover {
+            border-color: #007bff;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+        }
+
+        .attachment-item canvas {
+            display: block;
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+        }
+
+
+        .chat-input-container {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            background: #fafafa;
+            position: relative;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-config-btn {
+            padding: 10px 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 44px;
+            align-self: stretch;
+        }
+
+        .input-config-btn:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        .input-config-btn.active {
+            background: #007bff;
+            border-color: #007bff;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            min-height: 44px;
+            max-height: 120px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+        }
+
+        #messageInput:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        #messageInput:empty:before {
+            content: attr(data-placeholder);
+            color: #999;
+        }
+
+        .mention {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            margin: 0 2px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .mention:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #999;
+            padding: 40px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .file-input-label:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Canvas Section -->
+        <div class="canvas-section">
+            <div class="canvas-header">
+                <h1>Image Editor</h1>
+                <p>Upload an image and draw annotations (points, boxes, scribbles)</p>
+            </div>
+            <div class="canvas-container">
+                <div class="canvas-wrapper" id="canvasWrapper">
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+            <div class="canvas-gallery" id="canvasGallery" style="display: none;">
+                <div class="gallery-title">Uploaded Images (click to edit):</div>
+                <div class="gallery-items" id="galleryItems"></div>
+            </div>
+            <div class="canvas-controls">
+                <label for="imageInput" class="file-input-label">
+                    📁 Upload Image(s)
+                </label>
+                <input type="file" id="imageInput" accept="image/*" multiple>
+                <                <button class="btn" id="clearBtn" disabled>Clear Annotations</button>
+                <button class="btn" id="undoBtn" disabled>Undo</button>
+                <button class="btn" id="clearAllBtn" disabled>Clear All Images</button>
+            </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-section">
+            <div class="chat-header">
+                <div class="chat-header-top">
+                    <div>
+                        <h2>Chat Agent</h2>
+                        <p>Chat with AI Agent to edit your images</p>
+                    </div>
+                    <button class="toggle-config-btn" id="newChatBtn" title="Start a new chat session">
+                        <span>New Chat</span>
+                    </button>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="empty-state">
+                    <p>Start chatting with the AI!<br><br>
+                    <strong>Optional:</strong> Upload an image and draw annotations<br><br>
+                    <strong>Canvas Tips:</strong><br>
+                    • Single click: Add a point<br>
+                    • Double click: Select entire image<br>
+                    • Click and drag: Draw scribble or box<br>
+                    • Click then drag: Create box<br><br>
+                    <em>Note: Chat history clears on page reload</em></p>
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <div class="config-panel" id="configPanel">
+                    <div class="config-group">
+                        <label class="config-label">LLM Provider</label>
+                        <select class="config-select" id="llmProvider">
+                            <option value="google">Google Gemini</option>
+                            <option value="openai">OpenAI</option>
+                        </select>
+                    </div>
+                    
+                    <div class="config-group">
+                        <label class="config-label">API Key (optional - uses .env if empty)</label>
+                        <input type="password" class="config-input" id="apiKey" placeholder="Leave empty to use server's .env">
+                    </div>
+                    
+                    <div class="config-group">
+                        <label class="config-label">Model</label>
+                        <input type="text" class="config-input" id="llmModel" value="gemini-2.0-flash-exp" placeholder="e.g., gemini-2.0-flash-exp">
+                    </div>
+                    
+                    <div class="config-row">
+                        <div class="config-group">
+                            <label class="config-label">Max Prompt Cycles</label>
+                            <input type="number" class="config-input" id="maxPromptCycles" value="5" min="1" max="10">
+                        </div>
+                        
+                        <div class="config-group">
+                            <label class="config-label">Max LLM Exchanges</label>
+                            <input type="number" class="config-input" id="maxLlmExchanges" value="2" min="1" max="5">
+                        </div>
+                    </div>
+                    
+                    <div class="session-controls">
+                        <button class="session-btn" id="saveBtn" title="Save chat session to file" disabled>
+                            <span>💾</span>
+                            <span>Save</span>
+                        </button>
+                        <label for="loadFileInput" class="session-btn" id="loadBtn" title="Load chat session from file">
+                            <span>📁</span>
+                            <span>Load</span>
+                        </label>
+                        <input type="file" id="loadFileInput" accept=".json">
+                    </div>
+                </div>
+                
+                <div class="chat-input-wrapper">
+                    <button class="input-config-btn" id="toggleConfig" title="Settings">⚙️</button>
+                    <div id="messageInput" contenteditable="true" data-placeholder="Type your message..."></div>
+                    <button class="btn primary" id="sendBtn" disabled>Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import fabric from CDN
+        const { Canvas, FabricImage, Group, Circle, Rect, Path, Point } = fabric;
+        
+        // Standalone mode - no external services needed
+        const API_BASE_URL = window.location.origin;
+
+        // ===== State Management =====
+        const state = {
+            fabricCanvas: null,
+            currentImage: null,
+            currentFigFile: null,
+            currentFigObject: null,
+            uploadedFigObjects: [],  // Store all uploaded images
+            currentColor: '#FF0000',
+            chatHistory: [],
+            cycles: [],
+            context: null,
+            isGenerating: false,
+            
+            // Drawing state
+            isArmedDraw: false,
+            mouseDownPoint: null,
+            mouseDownTime: 0,
+            isDragging: false,
+            dragStarted: false,
+            pathPoints: [],
+            tempObject: null,
+            clickTimer: null,
+            lastClickTime: 0,
+            pendingArmPoint: null,
+            
+            // Reference tracking for mentions
+            references: [],  // { value, label, color, objectId }
+            
+            // Configuration
+            config: {
+                llmProvider: 'google',
+                apiKey: '',
+                llmModel: 'gemini-2.0-flash-exp',
+                maxPromptCycles: 5,
+                maxLlmExchanges: 2,
+            }
+        };
+
+        // ===== Utility Functions =====
+        function generateId() {
+            return crypto.randomUUID();
+        }
+
+        function getNextColor(dataUrl) {
+            // Simple color rotation for demo
+            const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
+            const currentIndex = colors.indexOf(state.currentColor);
+            return colors[(currentIndex + 1) % colors.length];
+        }
+
+
+        // ===== Fabric.js Canvas Coordinate Helpers =====
+        function canvasToFigCoords(point, canvas) {
+            const zoom = canvas.getZoom();
+            const vpt = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+            const x = (point.x - vpt[4]) / zoom;
+            const y = (point.y - vpt[5]) / zoom;
+            return new Point(x, y);
+        }
+
+        function createPoint(point, canvas, color, addMention = true) {
+            const fig = canvas.getObjects()[0];
+            const figCoords = canvasToFigCoords(point, canvas);
+            const zoom = canvas.getZoom();
+
+            const objectId = generateId();
+            const referenceValue = generateId();
+            
+            const circle = new Circle({
+                id: objectId,
+                left: figCoords.x,
+                top: figCoords.y,
+                radius: 5 / zoom,
+                fill: color,
+                color: color,
+                originX: 'center',
+                originY: 'center',
+                selectable: false,
+                evented: false,
+                ephemeral: true,
+                reference: { value: referenceValue, label: 'point' },
+            });
+            fig.add(circle);
+            canvas.requestRenderAll();
+            
+            // Only add reference/mention if requested (not for preview)
+            if (addMention) {
+                addReference(referenceValue, 'point', color, objectId);
+            }
+            
+            return circle;
+        }
+
+        function createBox(start, end, canvas, color) {
+            const fig = canvas.getObjects()[0];
+            const figStart = canvasToFigCoords(start, canvas);
+            const figEnd = canvasToFigCoords(end, canvas);
+
+            const left = Math.min(figStart.x, figEnd.x);
+            const top = Math.min(figStart.y, figEnd.y);
+            const width = Math.abs(figEnd.x - figStart.x);
+            const height = Math.abs(figEnd.y - figStart.y);
+            const zoom = canvas.getZoom();
+
+            const objectId = generateId();
+            const referenceValue = generateId();
+            
+            const rect = new Rect({
+                id: objectId,
+                left,
+                top,
+                width,
+                height,
+                fill: 'transparent',
+                stroke: color,
+                strokeWidth: 5 / zoom,
+                color: color,
+                selectable: false,
+                evented: false,
+                ephemeral: true,
+                reference: { value: referenceValue, label: 'box' },
+            });
+            fig.add(rect);
+            canvas.requestRenderAll();
+            
+            return { rect, referenceValue, objectId };
+        }
+
+        function createScribble(points, canvas, color) {
+            const fig = canvas.getObjects()[0];
+            const figPoints = points.map(p => canvasToFigCoords(p, canvas));
+
+            let pathString = `M ${figPoints[0].x} ${figPoints[0].y}`;
+            for (let i = 1; i < figPoints.length; i++) {
+                const xc = (figPoints[i].x + figPoints[i - 1].x) / 2;
+                const yc = (figPoints[i].y + figPoints[i - 1].y) / 2;
+                pathString += ` Q ${figPoints[i - 1].x} ${figPoints[i - 1].y} ${xc} ${yc}`;
+            }
+            if (figPoints.length > 1) {
+                const lastPoint = figPoints[figPoints.length - 1];
+                pathString += ` L ${lastPoint.x} ${lastPoint.y}`;
+            }
+
+            const zoom = canvas.getZoom();
+            const objectId = generateId();
+            const referenceValue = generateId();
+            
+            const path = new Path(pathString, {
+                id: objectId,
+                stroke: color,
+                strokeWidth: 10 / zoom,
+                fill: '',
+                strokeLineCap: 'round',
+                strokeLineJoin: 'round',
+                color: color,
+                selectable: false,
+                evented: false,
+                ephemeral: true,
+                reference: { value: referenceValue, label: 'scribble' },
+            });
+            fig.add(path);
+            canvas.requestRenderAll();
+            
+            return { path, referenceValue, objectId };
+        }
+
+        function createFigFrame(canvas, color, addMention = true) {
+            const fig = canvas.getObjects()[0];
+            const zoom = canvas.getZoom();
+            const image = fig.getObjects()[0];
+            const strokeWidth = 5 / zoom;
+            const width = image.getScaledWidth() - strokeWidth;
+            const height = image.getScaledHeight() - strokeWidth;
+
+            const referenceValue = generateId();
+            
+            const rect = new Rect({
+                id: fig.id,
+                left: 0,
+                top: 0,
+                width: width,
+                height: height,
+                fill: 'transparent',
+                stroke: color,
+                strokeWidth: 5 / zoom,
+                color: color,
+                selectable: false,
+                evented: false,
+                ephemeral: true,
+                reference: { value: referenceValue, label: 'image' },
+            });
+
+            const objects = fig.getObjects();
+            fig.remove(...objects);
+            fig.add(objects[0]);
+            fig.add(rect);
+            for (let i = 1; i < objects.length; i++) {
+                fig.add(objects[i]);
+            }
+            fig.set({ color, reference: { value: referenceValue, label: 'image' } });
+            canvas.requestRenderAll();
+            
+            // Only add reference/mention if requested
+            if (addMention) {
+                addReference(referenceValue, 'image', color, fig.id);
+            }
+            
+            return fig;
+        }
+
+        function removeFigFrame(canvas) {
+            const fig = canvas.getObjects()[0];
+            const figObjects = fig.getObjects();
+            if (figObjects.length > 1 && figObjects[1]?.id === fig.id) {
+                const frame = figObjects[1];
+                
+                // Remove reference if it exists
+                if (frame.reference) {
+                    removeReferenceByValue(frame.reference.value);
+                }
+                if (fig.reference) {
+                    removeReferenceByValue(fig.reference.value);
+                    delete fig.reference;
+                }
+                
+                fig.remove(frame);
+                canvas.requestRenderAll();
+            }
+            return fig;
+        }
+
+        function hasFigFrame(canvas) {
+            const fig = canvas.getObjects()[0];
+            const figObjects = fig.getObjects();
+            return figObjects.length > 1 && figObjects[1]?.id === fig.id;
+        }
+
+        async function updateNextColor() {
+            if (state.currentFigObject) {
+                state.currentColor = getNextColor();
+            }
+        }
+
+        // ===== Reference/Mention Management =====
+        function addReference(value, label, color, objectId) {
+            state.references.push({ value, label, color, objectId });
+            insertMention(value, label, color);
+        }
+
+        function removeReferenceByValue(value) {
+            const index = state.references.findIndex(ref => ref.value === value);
+            if (index !== -1) {
+                state.references.splice(index, 1);
+                updateMessageInput();
+            }
+        }
+
+        function insertMention(value, label, color) {
+            const input = document.getElementById('messageInput');
+            const colorCode = color.startsWith('#') ? color.slice(1) : color;
+            
+            // Check if we need a space before the mention
+            const lastChild = input.lastChild;
+            const needsSpace = lastChild && lastChild.textContent && !lastChild.textContent.endsWith(' ');
+            
+            if (needsSpace) {
+                input.appendChild(document.createTextNode(' '));
+            }
+            
+            // Create mention element
+            const mention = document.createElement('span');
+            mention.className = 'mention';
+            mention.contentEditable = 'false';
+            mention.setAttribute('data-value', value);
+            mention.setAttribute('data-label', label);
+            mention.setAttribute('data-color', colorCode);
+            mention.style.backgroundColor = `${color}20`;
+            mention.style.color = color;
+            mention.textContent = `@${label}`;
+            
+            input.appendChild(mention);
+            input.appendChild(document.createTextNode(' '));
+            
+            // Move cursor to end
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(input);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            
+            input.focus();
+        }
+
+        function updateMessageInput() {
+            const input = document.getElementById('messageInput');
+            
+            // Remove mention elements that are no longer in references
+            const mentionElements = input.querySelectorAll('.mention');
+            mentionElements.forEach(mention => {
+                const value = mention.getAttribute('data-value');
+                const refExists = state.references.some(ref => ref.value === value);
+                if (!refExists) {
+                    mention.remove();
+                }
+            });
+        }
+
+        function getMessageText() {
+            const input = document.getElementById('messageInput');
+            let text = '';
+            
+            input.childNodes.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    text += node.textContent;
+                } else if (node.classList && node.classList.contains('mention')) {
+                    const colorCode = node.getAttribute('data-color');
+                    const label = node.getAttribute('data-label');
+                    const value = node.getAttribute('data-value');
+                    text += `#${colorCode}[${label}](${value})`;
+                }
+            });
+            
+            return text;
+        }
+
+        function parseMentionsFromInput() {
+            const input = document.getElementById('messageInput');
+            const mentions = [];
+            
+            input.querySelectorAll('.mention').forEach(mention => {
+                mentions.push({
+                    color: '#' + mention.getAttribute('data-color'),
+                    label: mention.getAttribute('data-label'),
+                    value: mention.getAttribute('data-value')
+                });
+            });
+            
+            return mentions;
+        }
+
+        // Watch for manual text changes to sync annotations
+        function setupMessageInputWatcher() {
+            const input = document.getElementById('messageInput');
+            
+            // Track mentions before any change
+            let mentionsBefore = [];
+            
+            // Capture mentions before any modification
+            const captureMentionsBefore = () => {
+                mentionsBefore = Array.from(input.querySelectorAll('.mention')).map(m => ({
+                    element: m,
+                    value: m.getAttribute('data-value')
+                }));
+            };
+            
+            // Check for removed mentions after modification
+            const checkRemovedMentions = () => {
+                const mentionsAfter = new Set(
+                    Array.from(input.querySelectorAll('.mention')).map(m => m.getAttribute('data-value'))
+                );
+                
+                // Find mentions that were removed
+                mentionsBefore.forEach(({ value }) => {
+                    if (!mentionsAfter.has(value)) {
+                        removeReferenceByValue(value);
+                        removeAnnotationByReference(value);
+                    }
+                });
+                
+                // Update send button state
+                updateSendButtonState();
+            };
+            
+            // Handle all input changes (delete, backspace, cut, etc.)
+            input.addEventListener('beforeinput', (e) => {
+                captureMentionsBefore();
+                
+                // If deleting/cutting a selection that contains mentions
+                if (e.inputType === 'deleteContentBackward' || 
+                    e.inputType === 'deleteContentForward' ||
+                    e.inputType === 'deleteByCut') {
+                    
+                    const selection = window.getSelection();
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        
+                        // Check if selection contains any mentions
+                        const container = range.commonAncestorContainer;
+                        let parent = container.nodeType === Node.TEXT_NODE ? container.parentNode : container;
+                        
+                        // If we're inside or selecting a mention
+                        if (parent.classList && parent.classList.contains('mention')) {
+                            // Will be handled by checkRemovedMentions
+                        } else {
+                            // Check if range contains any mention elements
+                            const tempDiv = document.createElement('div');
+                            tempDiv.appendChild(range.cloneContents());
+                            const mentionsInSelection = tempDiv.querySelectorAll('.mention');
+                            
+                            if (mentionsInSelection.length > 0) {
+                                // Will be handled by checkRemovedMentions
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Check after any change
+            input.addEventListener('input', () => {
+                checkRemovedMentions();
+                updateSendButtonState();
+            });
+            
+            // Handle backspace/delete on mentions (direct deletion)
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' || e.key === 'Delete') {
+                    const selection = window.getSelection();
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        const node = range.startContainer;
+                        
+                        // Check if we're inside a mention
+                        if (node.parentElement && node.parentElement.classList.contains('mention')) {
+                            e.preventDefault();
+                            const mention = node.parentElement;
+                            const value = mention.getAttribute('data-value');
+                            mention.remove();
+                            removeReferenceByValue(value);
+                            removeAnnotationByReference(value);
+                            return;
+                        }
+                        
+                        // Check if cursor is right before a mention (backspace)
+                        if (e.key === 'Backspace' && range.startOffset === 0 && node.previousSibling?.classList?.contains('mention')) {
+                            e.preventDefault();
+                            const mention = node.previousSibling;
+                            const value = mention.getAttribute('data-value');
+                            mention.remove();
+                            removeReferenceByValue(value);
+                            removeAnnotationByReference(value);
+                            return;
+                        }
+                        
+                        // Check if cursor is right after a mention (delete)
+                        if (e.key === 'Delete' && node.nextSibling?.classList?.contains('mention')) {
+                            e.preventDefault();
+                            const mention = node.nextSibling;
+                            const value = mention.getAttribute('data-value');
+                            mention.remove();
+                            removeReferenceByValue(value);
+                            removeAnnotationByReference(value);
+                            return;
+                        }
+                    }
+                }
+                
+                // Prevent editing inside mentions
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const node = selection.getRangeAt(0).startContainer;
+                    if (node.parentElement && node.parentElement.classList.contains('mention')) {
+                        if (e.key.length === 1 || e.key === 'Enter') {
+                            e.preventDefault();
+                        }
+                    }
+                }
+            });
+            
+            // Handle Enter key
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+
+        function removeAnnotationByReference(referenceValue) {
+            if (!state.fabricCanvas) return;
+            
+            const fig = state.fabricCanvas.getObjects()[0];
+            if (!fig) return;
+            
+            const objects = fig.getObjects();
+            const objToRemove = objects.find(obj => 
+                obj.reference?.value === referenceValue || 
+                (obj.id === fig.id && fig.reference?.value === referenceValue)
+            );
+            
+            if (objToRemove) {
+                if (objToRemove.id === fig.id) {
+                                // It's an image selection
+                    fig.remove(objToRemove);
+                    delete fig.reference;
+                } else {
+                    fig.remove(objToRemove);
+                }
+                
+                state.fabricCanvas.requestRenderAll();
+                saveFigFile();
+            }
+        }
+
+        // ===== Canvas Setup =====
+        function setupCanvas() {
+            const canvasEl = document.getElementById('canvas');
+            state.fabricCanvas = new Canvas(canvasEl, {
+                selection: false,
+                backgroundColor: '#ffffff',
+            });
+
+            setupInteractions(state.fabricCanvas);
+        }
+
+        function setupInteractions(canvas) {
+            canvas.on('mouse:down', (e) => {
+                if (!e.pointer) return;
+                const fig = canvas.getObjects()[0];
+                if (!fig) return;
+
+                const now = Date.now();
+                state.mouseDownPoint = new Point(e.pointer.x, e.pointer.y);
+                state.mouseDownTime = now;
+                state.isDragging = false;
+                state.dragStarted = false;
+                state.pathPoints = [state.mouseDownPoint];
+
+                // Check if this mouse down is on the same point that armed the draw
+                const isContinuingFromArmedClick = state.pendingArmPoint &&
+                    Math.abs(e.pointer.x - state.pendingArmPoint.x) < 5 &&
+                    Math.abs(e.pointer.y - state.pendingArmPoint.y) < 5;
+
+                // If this is a new mouse down (not continuing from armed click), disarm
+                if (state.isArmedDraw && !isContinuingFromArmedClick) {
+                    state.isArmedDraw = false;
+                    state.pendingArmPoint = null;
+                }
+
+                // Cancel any pending click timer
+                if (state.clickTimer) {
+                    clearTimeout(state.clickTimer);
+                    state.clickTimer = null;
+                }
+            });
+
+            canvas.on('mouse:move', (e) => {
+                if (!e.pointer || !state.mouseDownPoint) return;
+                const fig = canvas.getObjects()[0];
+                if (!fig) return;
+
+                const dx = e.pointer.x - state.mouseDownPoint.x;
+                const dy = e.pointer.y - state.mouseDownPoint.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance > 5 && !state.dragStarted) {
+                    state.dragStarted = true;
+                    state.isDragging = true;
+                }
+
+                if (state.isDragging) {
+                    state.pathPoints.push(new Point(e.pointer.x, e.pointer.y));
+
+                    if (state.tempObject) {
+                        fig.remove(state.tempObject);
+                    }
+
+                    if (state.isArmedDraw) {
+                        // Armed draw: show box preview (dashed rect)
+                        const figStart = canvasToFigCoords(state.mouseDownPoint, canvas);
+                        const figEnd = canvasToFigCoords(new Point(e.pointer.x, e.pointer.y), canvas);
+
+                        const left = Math.min(figStart.x, figEnd.x);
+                        const top = Math.min(figStart.y, figEnd.y);
+                        const width = Math.abs(figEnd.x - figStart.x);
+                        const height = Math.abs(figEnd.y - figStart.y);
+                        const zoom = canvas.getZoom();
+
+                        state.tempObject = new Rect({
+                            left,
+                            top,
+                            width,
+                            height,
+                            fill: 'transparent',
+                            stroke: state.currentColor,
+                            strokeWidth: 5 / zoom,
+                            strokeDashArray: [5, 5],
+                            selectable: false,
+                            evented: false,
+                        });
+                        fig.add(state.tempObject);
+                    } else {
+                        // Not armed: show scribble preview
+                        const figPoints = state.pathPoints.map(p => canvasToFigCoords(p, canvas));
+                        let pathString = `M ${figPoints[0].x} ${figPoints[0].y}`;
+
+                        for (let i = 1; i < figPoints.length; i++) {
+                            const xc = (figPoints[i].x + figPoints[i - 1].x) / 2;
+                            const yc = (figPoints[i].y + figPoints[i - 1].y) / 2;
+                            pathString += ` Q ${figPoints[i - 1].x} ${figPoints[i - 1].y} ${xc} ${yc}`;
+                        }
+
+                        if (figPoints.length > 1) {
+                            const lastPoint = figPoints[figPoints.length - 1];
+                            pathString += ` L ${lastPoint.x} ${lastPoint.y}`;
+                        }
+
+                        const zoom = canvas.getZoom();
+                        state.tempObject = new Path(pathString, {
+                            stroke: state.currentColor,
+                            strokeWidth: 10 / zoom,
+                            fill: '',
+                            strokeLineCap: 'round',
+                            strokeLineJoin: 'round',
+                            selectable: false,
+                            evented: false,
+                        });
+                        fig.add(state.tempObject);
+                    }
+                    
+                    // Render the preview
+                    canvas.requestRenderAll();
+                }
+            });
+
+            canvas.on('mouse:up', (e) => {
+                if (!e.pointer || !state.mouseDownPoint) return;
+                const fig = canvas.getObjects()[0];
+                if (!fig) return;
+
+                const now = Date.now();
+                const timeSinceLastClick = now - state.lastClickTime;
+                const DOUBLE_CLICK_THRESHOLD = 300;
+
+                // Remove preview
+                if (state.tempObject) {
+                    fig.remove(state.tempObject);
+                    state.tempObject = null;
+                    canvas.requestRenderAll();
+                }
+
+                if (state.dragStarted) {
+                    // Drag completed (regular draw or armed draw)
+                    if (state.isArmedDraw) {
+                        // Armed draw: create box and disarm
+                        const result = createBox(state.mouseDownPoint, new Point(e.pointer.x, e.pointer.y), canvas, state.currentColor);
+                        addReference(result.referenceValue, 'box', state.currentColor, result.objectId);
+                        updateNextColor();
+                        saveFigFile();
+                        state.isArmedDraw = false;
+                        state.pendingArmPoint = null;
+                    } else {
+                        // Regular draw: create scribble
+                        const result = createScribble(state.pathPoints, canvas, state.currentColor);
+                        addReference(result.referenceValue, 'scribble', state.currentColor, result.objectId);
+                        updateNextColor();
+                        saveFigFile();
+                    }
+
+                    // Reset drag state
+                    state.dragStarted = false;
+                    state.isDragging = false;
+                    state.mouseDownPoint = null;
+                    state.pathPoints = [];
+                } else {
+                    // Click without drag (single or double click)
+                    const clickPoint = state.mouseDownPoint;
+
+                    // Check if this is a double click
+                    if (timeSinceLastClick < DOUBLE_CLICK_THRESHOLD) {
+                        // Double click detected - disarm and toggle image selection
+                        state.isArmedDraw = false;
+                        state.pendingArmPoint = null;
+                        
+                        if (hasFigFrame(canvas)) {
+                            removeFigFrame(canvas);
+                        } else {
+                            createFigFrame(canvas, state.currentColor);
+                            updateNextColor();
+                        }
+                        saveFigFile();
+                        state.lastClickTime = 0; // Reset to prevent triple-click issues
+                    } else {
+                        // Potential single click - arm immediately but delay point creation
+                        state.isArmedDraw = true;
+                        state.pendingArmPoint = clickPoint; // Remember where the arm happened
+
+                        state.clickTimer = setTimeout(() => {
+                            // Only create the point if not cancelled by double-click
+                            createPoint(clickPoint, canvas, state.currentColor);
+                            updateNextColor();
+                            saveFigFile();
+                            state.clickTimer = null;
+                        }, DOUBLE_CLICK_THRESHOLD);
+
+                        state.lastClickTime = now;
+                    }
+
+                    // Reset state
+                    state.mouseDownPoint = null;
+                    state.pathPoints = [];
+                }
+            });
+        }
+
+        // ===== Fig File Management =====
+        async function createFigObjectFromImageFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const dataUrl = e.target.result;
+                        const image = await FabricImage.fromURL(dataUrl);
+                        image.set({
+                            originX: 'center',
+                            originY: 'center',
+                            selectable: false,
+                            evented: false,
+                        });
+                        const group = new Group([image]);
+                        group.set({
+                            id: generateId(),
+                            originX: 'center',
+                            originY: 'center',
+                            left: image.getScaledWidth() / 2,
+                            top: image.getScaledHeight() / 2,
+                            selectable: false,
+                            evented: false,
+                            hoverCursor: 'default',
+                        });
+                        resolve(group.toObject(['id', 'selectable', 'evented', 'hoverCursor']));
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function loadImageFile(file) {
+            state.currentImage = file;
+            const figObject = await createFigObjectFromImageFile(file);
+            state.currentFigObject = figObject;
+            
+            // Add to uploaded images list if not already there
+            const existingIndex = state.uploadedFigObjects.findIndex(obj => obj.id === figObject.id);
+            if (existingIndex === -1) {
+                state.uploadedFigObjects.push(figObject);
+            }
+            
+            await loadFigObject(figObject);
+            saveFigFile();
+            updateNextColor();
+            enableControls();
+            updateImageCount();
+            await renderGallery();
+        }
+        
+        function updateImageCount() {
+            const count = state.uploadedFigObjects.length;
+            const label = document.querySelector('.file-input-label');
+            if (count > 0) {
+                label.textContent = `📁 Upload Image(s) (${count} loaded)`;
+            } else {
+                label.textContent = '📁 Upload Image(s)';
+            }
+        }
+
+        async function renderGallery() {
+            const gallery = document.getElementById('canvasGallery');
+            const galleryItems = document.getElementById('galleryItems');
+            
+            if (state.uploadedFigObjects.length === 0) {
+                gallery.style.display = 'none';
+                return;
+            }
+            
+            gallery.style.display = 'block';
+            galleryItems.innerHTML = '';
+            
+            for (let i = 0; i < state.uploadedFigObjects.length; i++) {
+                const figObj = state.uploadedFigObjects[i];
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'gallery-item';
+                itemDiv.title = `Image ${i + 1} - Click to edit`;
+                
+                // Mark as active if this is the current image
+                if (state.currentFigObject && figObj.id === state.currentFigObject.id) {
+                    itemDiv.classList.add('active');
+                }
+                
+                // Create thumbnail canvas
+                const thumbnailCanvas = document.createElement('canvas');
+                thumbnailCanvas.width = 100;
+                thumbnailCanvas.height = 100;
+                
+                try {
+                    const fig = await Group.fromObject(figObj);
+                    const tempCanvas = new fabric.StaticCanvas(thumbnailCanvas);
+                    tempCanvas.add(fig);
+                    
+                    const figObjects = fig.getObjects();
+                    if (figObjects.length > 0) {
+                        const image = figObjects[0];
+                        const imgWidth = image.getScaledWidth();
+                        const imgHeight = image.getScaledHeight();
+                        const zoom = Math.min(100 / imgWidth, 100 / imgHeight);
+                        tempCanvas.setDimensions({ width: imgWidth * zoom, height: imgHeight * zoom });
+                        tempCanvas.setZoom(zoom);
+                    }
+                    
+                    tempCanvas.renderAll();
+                } catch (e) {
+                    console.error('Failed to render gallery thumbnail:', e);
+                }
+                
+                // Click to load into editor
+                itemDiv.addEventListener('click', async (e) => {
+                    if (!e.target.classList.contains('gallery-item-remove')) {
+                        await switchToImage(i);
+                    }
+                });
+                
+                // Remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'gallery-item-remove';
+                removeBtn.textContent = '×';
+                removeBtn.title = 'Remove image';
+                removeBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await removeImage(i);
+                });
+                
+                itemDiv.appendChild(thumbnailCanvas);
+                itemDiv.appendChild(removeBtn);
+                galleryItems.appendChild(itemDiv);
+            }
+        }
+
+        async function switchToImage(index) {
+            if (index < 0 || index >= state.uploadedFigObjects.length) return;
+            
+            const figObj = state.uploadedFigObjects[index];
+            state.currentFigObject = figObj;
+            await loadFigObject(figObj);
+            saveFigFile();
+            await renderGallery();
+        }
+
+        async function removeImage(index) {
+            if (index < 0 || index >= state.uploadedFigObjects.length) return;
+            
+            const removedFigObj = state.uploadedFigObjects[index];
+            state.uploadedFigObjects.splice(index, 1);
+            
+            // If we removed the current image, switch to another one
+            if (state.currentFigObject && removedFigObj.id === state.currentFigObject.id) {
+                if (state.uploadedFigObjects.length > 0) {
+                    // Load the first remaining image
+                    await switchToImage(0);
+                } else {
+                    // No images left
+                    state.currentFigObject = null;
+                    state.fabricCanvas.clear();
+                    document.getElementById('sendBtn').disabled = true;
+                }
+            }
+            
+            updateImageCount();
+            await renderGallery();
+        }
+
+        async function loadFigObject(figObject) {
+            const fig = await Group.fromObject(figObject);
+            fig.set({
+                id: figObject.id,
+                subTargetCheck: true,
+                selectable: false,
+                evented: false,
+                interactive: true,
+            });
+
+            state.fabricCanvas.clear();
+            state.fabricCanvas.add(fig);
+            resizeAndZoomCanvas();
+        }
+
+        function resizeAndZoomCanvas() {
+            const canvas = state.fabricCanvas;
+            if (!canvas) return;
+            const objects = canvas.getObjects();
+            if (objects.length === 0) return;
+            const fig = objects[0];
+            const figObjects = fig.getObjects();
+            if (figObjects.length === 0) return;
+            const image = figObjects[0];
+            const imageWidth = image.getScaledWidth();
+            const imageHeight = image.getScaledHeight();
+            
+            const maxWidth = 800;
+            const maxHeight = 600;
+            const zoom = Math.min(maxWidth / imageWidth, maxHeight / imageHeight);
+            
+            canvas.setDimensions({
+                width: imageWidth * zoom,
+                height: imageHeight * zoom,
+            });
+            canvas.setZoom(zoom);
+            canvas.requestRenderAll();
+        }
+
+        function saveFigFile() {
+            if (!state.fabricCanvas) return;
+            const fig = state.fabricCanvas.getObjects()[0];
+            if (!fig) return;
+            
+            const newFigObject = fig.toObject(['id', 'selectable', 'evented', 'hoverCursor', 'color', 'ephemeral', 'reference']);
+            state.currentFigObject = newFigObject;
+            
+            // Update in uploadedFigObjects array
+            const index = state.uploadedFigObjects.findIndex(obj => obj.id === newFigObject.id);
+            if (index !== -1) {
+                state.uploadedFigObjects[index] = newFigObject;
+            }
+            
+            const figJson = JSON.stringify(newFigObject);
+            const blob = new Blob([figJson], { type: 'application/json' });
+            state.currentFigFile = new File([blob], `${generateId()}.fig.json`, { type: 'application/json' });
+        }
+
+        function clearAnnotations() {
+            if (!state.fabricCanvas) return;
+            const fig = state.fabricCanvas.getObjects()[0];
+            if (!fig) return;
+            
+            // Clear all references
+            state.references = [];
+            updateMessageInput();
+            
+            const image = fig.getObjects()[0];
+            fig.remove(...fig.getObjects());
+            fig.add(image);
+            state.fabricCanvas.requestRenderAll();
+            saveFigFile();
+        }
+
+        function undo() {
+            if (!state.fabricCanvas) return;
+            const fig = state.fabricCanvas.getObjects()[0];
+            if (!fig) return;
+            
+            const objects = fig.getObjects();
+            if (objects.length > 1) {
+                // Check if last object is a frame
+                const lastObject = objects[objects.length - 1];
+                
+                // Remove reference if it exists
+                if (lastObject.reference) {
+                    removeReferenceByValue(lastObject.reference.value);
+                }
+                
+                if (lastObject.id === fig.id) {
+                    // It's an image selection, remove it and its reference
+                    if (fig.reference) {
+                        removeReferenceByValue(fig.reference.value);
+                    }
+                    fig.remove(lastObject);
+                } else {
+                    // Regular object, remove it
+                    fig.remove(lastObject);
+                }
+                state.fabricCanvas.requestRenderAll();
+                saveFigFile();
+            }
+        }
+
+        function enableControls() {
+            document.getElementById('clearBtn').disabled = false;
+            document.getElementById('undoBtn').disabled = false;
+            updateSendButtonState();
+        }
+
+        function updateSendButtonState() {
+            const input = document.getElementById('messageInput');
+            const text = getMessageText().trim();
+            document.getElementById('sendBtn').disabled = !text || state.isGenerating;
+        }
+
+        // ===== Chat Management =====
+        async function loadChatFromStorage() {
+            // Chat history is cleared on page reload
+            state.cycles = [];
+            state.context = null;
+            await renderChat();
+        }
+
+        function saveChatToStorage() {
+            // No persistence - chat clears on reload
+        }
+
+        async function addCycle(cycle) {
+            state.cycles.push(cycle);
+            await renderChat();
+            updateSessionButtonStates();
+        }
+
+        async function updateLastCycle(updates) {
+            if (state.cycles.length > 0) {
+                Object.assign(state.cycles[state.cycles.length - 1], updates);
+                await renderChat();
+            }
+        }
+
+        function updateSessionButtonStates() {
+            const hasCycles = state.cycles.length > 0;
+            
+            // Disable Save if chat is empty
+            document.getElementById('saveBtn').disabled = !hasCycles;
+            
+            // Disable Load if there's a current chat
+            const loadBtn = document.getElementById('loadBtn');
+            if (hasCycles) {
+                loadBtn.classList.add('disabled');
+            } else {
+                loadBtn.classList.remove('disabled');
+            }
+        }
+
+        async function renderAttachments(attachments, container) {
+            if (!attachments || attachments.length === 0) return;
+
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'attachment-preview';
+
+            for (const attachment of attachments) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'attachment-item';
+                itemDiv.title = 'Click to load in editor';
+
+                // Create thumbnail canvas
+                const thumbnailCanvas = document.createElement('canvas');
+                thumbnailCanvas.width = 120;
+                thumbnailCanvas.height = 120;
+
+                // Render fig object to thumbnail
+                try {
+                    const fig = await Group.fromObject(attachment.content);
+                    const tempCanvas = new fabric.StaticCanvas(thumbnailCanvas);
+                    tempCanvas.add(fig);
+                    
+                    // Calculate zoom to fit
+                    const figObjects = fig.getObjects();
+                    if (figObjects.length > 0) {
+                        const image = figObjects[0];
+                        const imgWidth = image.getScaledWidth();
+                        const imgHeight = image.getScaledHeight();
+                        const zoom = Math.min(120 / imgWidth, 120 / imgHeight);
+                        tempCanvas.setDimensions({ width: imgWidth * zoom, height: imgHeight * zoom });
+                        tempCanvas.setZoom(zoom);
+                    }
+                    
+                    tempCanvas.renderAll();
+                } catch (e) {
+                    console.error('Failed to render thumbnail:', e);
+                }
+
+                // Add click handler to load into editor
+                itemDiv.addEventListener('click', async () => {
+                    await loadResponseImageInline(attachment.content);
+                });
+
+                itemDiv.appendChild(thumbnailCanvas);
+                previewDiv.appendChild(itemDiv);
+            }
+
+            container.appendChild(previewDiv);
+        }
+
+        function renderMessageText(text) {
+            const div = document.createElement('div');
+            div.style.display = 'inline';
+            
+            // Parse mentions in the text
+            const mentionPattern = /#([0-9A-Fa-f]{6})\[([^\]]+)\]\(([^)]+)\)/g;
+            let lastIndex = 0;
+            let match;
+            
+            while ((match = mentionPattern.exec(text)) !== null) {
+                // Add text before the mention
+                if (match.index > lastIndex) {
+                    div.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+                }
+                
+                // Create mention span
+                const [, colorCode, label] = match;
+                const mention = document.createElement('span');
+                mention.className = 'mention';
+                mention.style.backgroundColor = `#${colorCode}20`;
+                mention.style.color = `#${colorCode}`;
+                mention.textContent = `@${label}`;
+                div.appendChild(mention);
+                
+                lastIndex = match.index + match[0].length;
+            }
+            
+            // Add remaining text
+            if (lastIndex < text.length) {
+                div.appendChild(document.createTextNode(text.substring(lastIndex)));
+            }
+            
+            return div;
+        }
+
+        async function renderChat() {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
+
+            if (state.cycles.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>Start chatting with the AI!<br><br>
+                        <strong>Optional:</strong> Upload an image and draw annotations<br><br>
+                        <strong>Canvas Tips:</strong><br>
+                        • Single click: Add a point<br>
+                        • Double click: Select entire image<br>
+                        • Click and drag: Draw scribble or box<br>
+                        • Click then drag: Create box<br><br>
+                        <em>Note: Chat history clears on page reload</em></p>
+                    </div>
+                `;
+                return;
+            }
+
+            for (const cycle of state.cycles) {
+                const cycleDiv = document.createElement('div');
+                cycleDiv.className = 'cycle';
+
+                // Request message with attachments
+                if (cycle.request) {
+                    const messageGroup = document.createElement('div');
+                    messageGroup.className = 'message-group user';
+
+                    const requestDiv = document.createElement('div');
+                    requestDiv.className = 'message user';
+                    
+                    // Render text with styled mentions
+                    const textContent = renderMessageText(cycle.request.text || 'Image edit request');
+                    requestDiv.appendChild(textContent);
+                    
+                    messageGroup.appendChild(requestDiv);
+
+                    // Show request attachments (aligned right with message)
+                    if (cycle.request.attachments) {
+                        await renderAttachments(cycle.request.attachments, messageGroup);
+                    }
+
+                    cycleDiv.appendChild(messageGroup);
+                }
+
+                // Progress messages (collapsible)
+                if (cycle.progress && cycle.progress.length > 0) {
+                    const progressContainer = document.createElement('div');
+                    progressContainer.className = 'progress-container';
+                    
+                    // Progress header (toggle)
+                    const progressHeader = document.createElement('div');
+                    progressHeader.className = 'progress-header';
+                    
+                    const headerText = document.createElement('span');
+                    headerText.textContent = `Progress (${cycle.progress.length} steps)`;
+                    
+                    const toggleIcon = document.createElement('span');
+                    toggleIcon.className = 'toggle-icon';
+                    toggleIcon.textContent = '▼';
+                    
+                    // Auto-collapse if response is complete
+                    const isComplete = cycle.response || cycle.error;
+                    if (isComplete) {
+                        toggleIcon.classList.add('collapsed');
+                    }
+                    
+                    progressHeader.appendChild(headerText);
+                    progressHeader.appendChild(toggleIcon);
+                    
+                    // Progress events container
+                    const progressEvents = document.createElement('div');
+                    progressEvents.className = 'progress-events';
+                    if (isComplete) {
+                        progressEvents.classList.add('collapsed');
+                    }
+                    
+                    cycle.progress.forEach(prog => {
+                        const progItem = document.createElement('div');
+                        progItem.className = `progress-item ${prog.type}`;
+                        
+                        // Progress header
+                        const progHeader = document.createElement('div');
+                        progHeader.className = 'progress-item-header';
+                        
+                        const message = document.createElement('span');
+                        message.textContent = prog.message || prog.type;
+                        
+                        const icon = document.createElement('span');
+                        icon.className = 'progress-item-icon collapsed';
+                        icon.textContent = '▶';
+                        
+                        progHeader.appendChild(message);
+                        if (prog.data) {
+                            progHeader.appendChild(icon);
+                        }
+                        
+                        // Progress data (JSON)
+                        const progData = document.createElement('div');
+                        progData.className = 'progress-item-data collapsed';
+                        if (prog.data) {
+                            try {
+                                const jsonStr = typeof prog.data === 'string' 
+                                    ? prog.data 
+                                    : JSON.stringify(prog.data, null, 2);
+                                progData.textContent = jsonStr;
+                            } catch (e) {
+                                progData.textContent = String(prog.data);
+                            }
+                        }
+                        
+                        // Toggle on click
+                        if (prog.data) {
+                            progHeader.addEventListener('click', () => {
+                                progData.classList.toggle('collapsed');
+                                icon.classList.toggle('collapsed');
+                            });
+                        }
+                        
+                        progItem.appendChild(progHeader);
+                        if (prog.data) {
+                            progItem.appendChild(progData);
+                        }
+                        progressEvents.appendChild(progItem);
+                    });
+                    
+                    // Toggle on click
+                    progressHeader.addEventListener('click', () => {
+                        progressEvents.classList.toggle('collapsed');
+                        toggleIcon.classList.toggle('collapsed');
+                    });
+                    
+                    progressContainer.appendChild(progressHeader);
+                    progressContainer.appendChild(progressEvents);
+                    cycleDiv.appendChild(progressContainer);
+                }
+
+                // Response message with attachments
+                if (cycle.response) {
+                    const messageGroup = document.createElement('div');
+                    messageGroup.className = 'message-group assistant';
+
+                    const responseDiv = document.createElement('div');
+                    responseDiv.className = 'message assistant';
+                    
+                    // Render text with styled mentions
+                    const textContent = renderMessageText(cycle.response.text || 'Edit complete');
+                    responseDiv.appendChild(textContent);
+                    
+                    messageGroup.appendChild(responseDiv);
+
+                    // Show response attachments (aligned left with message)
+                    if (cycle.response.attachments) {
+                        await renderAttachments(cycle.response.attachments, messageGroup);
+                    }
+
+                    cycleDiv.appendChild(messageGroup);
+                }
+
+                // Error message
+                if (cycle.error) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'message error';
+                    errorDiv.textContent = cycle.error;
+                    cycleDiv.appendChild(errorDiv);
+                }
+
+                container.appendChild(cycleDiv);
+            }
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = getMessageText().trim();
+            if (!text || state.isGenerating) return;  // Text is required, attachments are optional
+
+            input.innerHTML = '';
+            state.references = [];  // Clear references after sending
+            state.isGenerating = true;
+            document.getElementById('sendBtn').disabled = true;
+
+            // Save current fig to ensure latest annotations are included
+            saveFigFile();
+
+            // Create attachments from all uploaded images (with current annotations)
+            const attachments = state.uploadedFigObjects.map(figObj => ({
+                filename: `${generateId()}.fig.json`,
+                content: figObj
+            }));
+
+            // Create cycle
+            const cycle = {
+                id: generateId(),
+                request: {
+                    text,
+                    attachments: attachments,
+                },
+                progress: [],
+            };
+            await addCycle(cycle);
+
+            // Build request with inline content (no file IDs)
+            const requestBody = {
+                llm_config: {
+                    provider: state.config.llmProvider,
+                    api_key: state.config.apiKey || null,  // null if empty, backend uses .env default
+                    model: state.config.llmModel,
+                    params: {}
+                },
+                chat2edit_config: {
+                    max_prompt_cycles: state.config.maxPromptCycles,
+                    max_llm_exchanges: state.config.maxLlmExchanges,
+                },
+                message: {
+                    text,
+                    attachments: attachments,
+                },
+                history: state.cycles.slice(0, -1).map(c => ({
+                    request: c.request,
+                    response: c.response,
+                })),
+                context: state.context,  // Inline context, not file ID
+            };
+
+            // Connect to SSE endpoint
+            try {
+                const response = await fetch(`${API_BASE_URL}/chat2edit/generate/stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody),
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.slice(6));
+                            
+                            if (data.type === 'complete') {
+                                // Update cycle with response (inline content)
+                                updateLastCycle({
+                                    response: data.data.message,
+                                    cycle: data.data.cycle,
+                                });
+                                state.context = data.data.context;  // Store inline context
+
+                                // Load the response image if available (inline content)
+                                if (data.data.message?.attachments?.[0]) {
+                                    const attachment = data.data.message.attachments[0];
+                                    await loadResponseImageInline(attachment.content);
+                                }
+                            } else if (data.type === 'error') {
+                                updateLastCycle({ error: data.message });
+                            } else {
+                                // Progress event
+                                const lastCycle = state.cycles[state.cycles.length - 1];
+                                lastCycle.progress.push(data);
+                                await renderChat();
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Generation failed:', e);
+                updateLastCycle({ error: e.message });
+            } finally {
+                state.isGenerating = false;
+                document.getElementById('sendBtn').disabled = false;
+            }
+        }
+
+        async function loadResponseImageInline(figObject) {
+            try {
+                state.currentFigObject = figObject;
+                
+                // Add to uploaded images if not already there
+                const existingIndex = state.uploadedFigObjects.findIndex(obj => obj.id === figObject.id);
+                if (existingIndex === -1) {
+                    state.uploadedFigObjects.push(figObject);
+                }
+                
+                await loadFigObject(figObject);
+                saveFigFile();
+                updateImageCount();
+                await renderGallery();
+            } catch (e) {
+                console.error('Failed to load response image:', e);
+            }
+        }
+
+        // ===== Event Listeners =====
+        document.getElementById('imageInput').addEventListener('change', async (e) => {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                // Load all selected files
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const figObject = await createFigObjectFromImageFile(file);
+                    
+                    // Add to uploaded images list
+                    const existingIndex = state.uploadedFigObjects.findIndex(obj => obj.id === figObject.id);
+                    if (existingIndex === -1) {
+                        state.uploadedFigObjects.push(figObject);
+                    }
+                    
+                    // Load the first one into the editor
+                    if (i === 0) {
+                        state.currentImage = file;
+                        state.currentFigObject = figObject;
+                        await loadFigObject(figObject);
+                        saveFigFile();
+                        updateNextColor();
+                        enableControls();
+                    }
+                }
+                
+                updateImageCount();
+                await renderGallery();
+                console.log(`${files.length} image(s) uploaded`);
+            }
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', clearAnnotations);
+        document.getElementById('undoBtn').addEventListener('click', undo);
+        document.getElementById('clearAllBtn').addEventListener('click', async () => {
+            state.uploadedFigObjects = [];
+            state.currentFigObject = null;
+            state.fabricCanvas.clear();
+            updateImageCount();
+            await renderGallery();
+            document.getElementById('clearAllBtn').disabled = true;
+            // Send button stays enabled - user can still send text-only messages
+        });
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+
+        // ===== Configuration Management =====
+        function loadConfigFromForm() {
+            state.config.llmProvider = document.getElementById('llmProvider').value;
+            state.config.apiKey = document.getElementById('apiKey').value;
+            state.config.llmModel = document.getElementById('llmModel').value;
+            state.config.maxPromptCycles = parseInt(document.getElementById('maxPromptCycles').value);
+            state.config.maxLlmExchanges = parseInt(document.getElementById('maxLlmExchanges').value);
+            
+            // Save to localStorage
+            localStorage.setItem('mic2e-demo-config', JSON.stringify(state.config));
+        }
+
+        function loadConfigFromStorage() {
+            const saved = localStorage.getItem('mic2e-demo-config');
+            if (saved) {
+                try {
+                    const config = JSON.parse(saved);
+                    state.config = { ...state.config, ...config };
+                    
+                    // Update form inputs with saved values
+                    document.getElementById('llmProvider').value = config.llmProvider || 'google';
+                    document.getElementById('apiKey').value = config.apiKey || '';
+                    document.getElementById('llmModel').value = config.llmModel || 'gemini-2.0-flash-exp';
+                    document.getElementById('maxPromptCycles').value = config.maxPromptCycles || 5;
+                    document.getElementById('maxLlmExchanges').value = config.maxLlmExchanges || 2;
+                } catch (e) {
+                    console.error('Failed to load config from storage:', e);
+                }
+            }
+        }
+
+        function setupConfigPanel() {
+            const toggleBtn = document.getElementById('toggleConfig');
+            const panel = document.getElementById('configPanel');
+            
+            // Load saved config
+            loadConfigFromStorage();
+            
+            toggleBtn.addEventListener('click', () => {
+                const isVisible = panel.classList.toggle('visible');
+                toggleBtn.classList.toggle('active', isVisible);
+            });
+            
+            // Save config on change
+            document.getElementById('llmProvider').addEventListener('change', loadConfigFromForm);
+            document.getElementById('apiKey').addEventListener('input', loadConfigFromForm);
+            document.getElementById('llmModel').addEventListener('input', loadConfigFromForm);
+            document.getElementById('maxPromptCycles').addEventListener('input', loadConfigFromForm);
+            document.getElementById('maxLlmExchanges').addEventListener('input', loadConfigFromForm);
+            
+            // Update model placeholder based on provider
+            document.getElementById('llmProvider').addEventListener('change', (e) => {
+                const modelInput = document.getElementById('llmModel');
+                if (e.target.value === 'google') {
+                    modelInput.placeholder = 'e.g., gemini-2.0-flash-exp';
+                    if (!modelInput.value || modelInput.value.includes('gpt')) {
+                        modelInput.value = 'gemini-2.0-flash-exp';
+                    }
+                } else {
+                    modelInput.placeholder = 'e.g., gpt-4o';
+                    if (!modelInput.value || modelInput.value.includes('gemini')) {
+                        modelInput.value = 'gpt-4o';
+                    }
+                }
+                loadConfigFromForm();
+            });
+        }
+
+        // ===== Session Save/Load =====
+        function saveSession() {
+            const sessionData = {
+                version: '1.0',
+                timestamp: new Date().toISOString(),
+                cycles: state.cycles,
+                context: state.context,
+                uploadedFigObjects: state.uploadedFigObjects,
+                currentFigObject: state.currentFigObject,
+            };
+
+            const json = JSON.stringify(sessionData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `mic2e-session-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            console.log('Session saved successfully');
+        }
+
+        async function loadSession(file) {
+            try {
+                const text = await file.text();
+                const sessionData = JSON.parse(text);
+                
+                // Validate version
+                if (!sessionData.version) {
+                    throw new Error('Invalid session file format');
+                }
+                
+                // Restore state
+                state.cycles = sessionData.cycles || [];
+                state.context = sessionData.context || null;
+                state.uploadedFigObjects = sessionData.uploadedFigObjects || [];
+                state.currentFigObject = sessionData.currentFigObject || null;
+                
+                // Render chat
+                await renderChat();
+                
+                // Render gallery
+                await renderGallery();
+                
+                // Load current image into canvas if exists
+                if (state.currentFigObject) {
+                    await loadFigObject(state.currentFigObject);
+                    saveFigFile();
+                    enableControls();
+                }
+                
+                updateImageCount();
+                updateSessionButtonStates();
+                
+                console.log('Session loaded successfully');
+            } catch (e) {
+                console.error('Failed to load session:', e);
+                alert('Failed to load session file. Please check the file format.');
+            }
+        }
+
+        function newChat() {
+            if (state.cycles.length > 0 || state.uploadedFigObjects.length > 0) {
+                if (!confirm('Start a new chat? This will clear all messages and images.')) {
+                    return;
+                }
+            }
+            
+            // Clear all chat state
+            state.cycles = [];
+            state.context = null;
+            state.uploadedFigObjects = [];
+            state.currentFigObject = null;
+            state.references = [];
+            
+            // Clear UI
+            state.fabricCanvas.clear();
+            document.getElementById('messageInput').innerHTML = '';
+            
+            // Re-render
+            renderChat();
+            renderGallery();
+            updateImageCount();
+            updateSendButtonState();
+            updateSessionButtonStates();
+            
+            console.log('New chat started');
+        }
+
+        // ===== Initialize =====
+        setupCanvas();
+        setupMessageInputWatcher();
+        setupConfigPanel();
+        loadChatFromStorage();
+        updateSessionButtonStates();
+        
+        // Setup session controls
+        document.getElementById('saveBtn').addEventListener('click', saveSession);
+        document.getElementById('newChatBtn').addEventListener('click', newChat);
+        document.getElementById('loadFileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                await loadSession(file);
+                e.target.value = ''; // Reset input so same file can be loaded again
+            }
+        });
+    </script>
+</body>
+</html>

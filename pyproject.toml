@@ -1,0 +1,28 @@
+[project]
+name = "mic2e-demo"
+version = "0.2.0"
+description = "Standalone demo for MIC2E image editing chatbot - no storage service needed!"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "chat2edit==4.1.7",
+    "fastapi>=0.124.0",
+    "httpx>=0.27.0",
+    "llvmlite==0.42.0",
+    "numba==0.59.1",
+    "numpy==1.26.4",
+    "onnxruntime>=1.23.2",
+    "pillow>=10.0.0",
+    "python-dotenv>=1.2.1",
+    "rembg>=2.0.69",
+    "scipy>=1.15.3",
+    "svgpathtools>=1.7.2",
+    "uvicorn>=0.38.0",
+]
+
+[dependency-groups]
+dev = [
+    "black>=24.10.0",
+    "ipykernel>=7.1.0",
+    "isort>=7.0.0",
+]
