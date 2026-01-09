@@ -165,10 +165,22 @@ class Chat2EditServiceImpl(Chat2EditService):
 
     def _create_streaming_callbacks(self, progress_queue: asyncio.Queue) -> Chat2EditCallbacks:
         """Create callbacks that enqueue progress events for SSE streaming."""
+        
+        # Track last event to prevent duplicates
+        last_event_hash = [None]  # Use list to allow mutation in closure
 
         def _enqueue_progress(event_type: str, message: Optional[str] = None, data: Optional[Any] = None):
             """Enqueue progress event to be streamed to client."""
             try:
+                # Create event hash to detect duplicates
+                event_hash = hash((event_type, message, str(data)[:100] if data else None))
+                
+                # Skip if this is the same as the last event (prevents spam)
+                if event_hash == last_event_hash[0]:
+                    return
+                    
+                last_event_hash[0] = event_hash
+                
                 # Use put_nowait to avoid blocking the callback
                 progress_queue.put_nowait({
                     "type": event_type,
@@ -194,7 +206,21 @@ class Chat2EditServiceImpl(Chat2EditService):
 
         def on_execute(block: ExecutionBlock) -> None:
             block_type = getattr(block, 'type', None) or getattr(block, 'block_type', None) or str(type(block).__name__)
-            _enqueue_progress("execute", message=f"Executing: {block_type}", data=block.model_dump())
+            
+            # Safely serialize execution block to prevent recursion errors
+            try:
+                block_data = block.model_dump(mode="json")
+            except (RecursionError, ValueError, TypeError) as e:
+                # If serialization fails, provide a safe summary
+                block_data = {
+                    "generated_code": getattr(block, 'generated_code', None),
+                    "processed_code": getattr(block, 'processed_code', None),
+                    "executed": getattr(block, 'executed', False),
+                    "error": str(getattr(block, 'error', None)) if hasattr(block, 'error') else None,
+                    "serialization_error": str(e)
+                }
+            
+            _enqueue_progress("execute", message=f"Executing: {block_type}", data=block_data)
 
         return Chat2EditCallbacks(
             on_request=on_request,

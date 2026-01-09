@@ -6,6 +6,7 @@ load_dotenv()
 
 # Server configuration
 PORT = int(os.getenv("PORT", "8000"))
+ROOT_PATH = os.getenv("ROOT_PATH", "")  # Empty for local, "/chat2edit" for reverse proxy
 
 # LLM API keys (at least one required)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

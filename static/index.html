@@ -870,8 +870,10 @@
         
         // Standalone mode - no external services needed
         // Support basepath for reverse proxy (e.g., /chat2edit)
-        // The root_path is handled by FastAPI, we just need the API prefix
-        const API_BASE_URL = window.location.origin + window.location.pathname.replace(/\/$/, '');
+        // Dynamically detect basepath from current location
+        const currentPath = window.location.pathname;
+        const basePath = currentPath === '/' ? '' : currentPath.replace(/\/$/, '');
+        const API_BASE_URL = window.location.origin + basePath;
 
         // ===== State Management =====
         const state = {
@@ -2188,6 +2190,7 @@
                     attachments: attachments,
                 },
                 progress: [],
+                cycle: null,  // Will be populated when response comes back
             };
             await addCycle(cycle);
 
@@ -2207,10 +2210,9 @@
                     text,
                     attachments: attachments,
                 },
-                history: state.cycles.slice(0, -1).map(c => ({
-                    request: c.request,
-                    response: c.response,
-                })),
+                history: state.cycles.slice(0, -1)
+                    .filter(c => c.cycle)  // Only include cycles with complete cycle data
+                    .map(c => c.cycle),  // Use the full ChatCycle object from backend
                 context: state.context,  // Inline context, not file ID
             };
 

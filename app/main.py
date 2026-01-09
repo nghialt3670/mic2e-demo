@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from app.env import ROOT_PATH
 from app.lifespan import lifespan
 from app.routes.chat2edit_routes import router as chat2edit_router
 from app.routes.health_routes import router as health_router
@@ -10,7 +11,7 @@ app = FastAPI(
     title="MIC2E Demo",
     description="Simple demo for MIC2E image editing chatbot",
     lifespan=lifespan,
-    root_path="/chat2edit"  # Support basepath for reverse proxy
+    root_path=ROOT_PATH  # Configurable basepath (empty for local, /chat2edit for proxy)
 )
 
 # CORS middleware for API calls
