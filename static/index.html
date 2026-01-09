@@ -870,7 +870,8 @@
         
         // Standalone mode - no external services needed
         // Support basepath for reverse proxy (e.g., /chat2edit)
-        const API_BASE_URL = window.location.origin + '/chat2edit';
+        // The root_path is handled by FastAPI, we just need the API prefix
+        const API_BASE_URL = window.location.origin + window.location.pathname.replace(/\/$/, '');
 
         // ===== State Management =====
         const state = {
@@ -2215,7 +2216,7 @@
 
             // Connect to SSE endpoint
             try {
-                const response = await fetch(`${API_BASE_URL}/chat2edit/generate/stream`, {
+                const response = await fetch(`${API_BASE_URL}/api/generate/stream`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

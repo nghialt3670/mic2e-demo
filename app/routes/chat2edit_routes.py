@@ -15,7 +15,7 @@ from app.schemas.chat2edit_schemas import (
 from app.schemas.common_schemas import ResponseModel
 from app.services.chat2edit_service import Chat2EditService
 
-router = APIRouter(prefix="/chat2edit", tags=["chat2edit"])
+router = APIRouter(prefix="/api", tags=["chat2edit"])
 logger = logging.getLogger(__name__)
 
 
