@@ -39,8 +39,9 @@ class Mic2eContextStrategy(ContextStrategy):
 
         for key, value in context.items():
             try:
-                item_adapter.validate_python(value)
-                filtered_context[key] = value
+                # Validate and convert dict to Image/Entity objects
+                validated_value = item_adapter.validate_python(value)
+                filtered_context[key] = validated_value
             except Exception:
                 continue
 

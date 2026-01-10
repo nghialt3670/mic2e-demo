@@ -19,7 +19,6 @@ async def inpaint_objects(image: Image, objects: List[Object]) -> Image:
     inpainted_image = await inference_client.object_clear_inpaint(
         pil_image, expanded_mask, "remove the instance of the object"
     )
-    inpainted_image.save("inpainted.png")
     image.set_image(inpainted_image)
 
     for object in objects:

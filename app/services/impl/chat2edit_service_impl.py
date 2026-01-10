@@ -45,6 +45,8 @@ class Chat2EditServiceImpl(Chat2EditService):
 
         message = self._create_request_message(request.message)
         context = request.context or {}
+        # Validate and convert context dicts to Image/Entity objects before using
+        context = self._context_strategy.filter_context(context)
 
         response, cycle, updated_context = await chat2edit.generate(
             message, request.history, context
@@ -82,6 +84,8 @@ class Chat2EditServiceImpl(Chat2EditService):
 
             message = self._create_request_message(request.message)
             context = request.context or {}
+            # Validate and convert context dicts to Image/Entity objects before using
+            context = self._context_strategy.filter_context(context)
             
             # Start generation in background
             async def run_generation():

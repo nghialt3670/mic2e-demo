@@ -589,6 +589,47 @@
             border-left: 3px solid #007bff;
             border-radius: 4px;
             overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .progress-item.request {
+            border-left-color: #6c757d;
+        }
+
+        .progress-item.prompt {
+            border-left-color: #17a2b8;
+        }
+
+        .progress-item.answer {
+            border-left-color: #ffc107;
+        }
+
+        .progress-item.extract {
+            border-left-color: #6610f2;
+        }
+
+        .progress-item.execute {
+            border-left-color: #28a745;
+        }
+
+        .progress-item.feedback {
+            border-left-color: #fd7e14;
+        }
+
+        .progress-item.feedback.info {
+            border-left-color: #17a2b8;
+        }
+
+        .progress-item.feedback.warning {
+            border-left-color: #ffc107;
+        }
+
+        .progress-item.feedback.error {
+            border-left-color: #dc3545;
+        }
+
+        .progress-item.response {
+            border-left-color: #6f42c1;
         }
 
         .progress-item.complete {
@@ -623,16 +664,47 @@
         }
 
         .progress-item-data {
-            padding: 8px 12px;
+            padding: 12px;
             background: #fff;
             border-top: 1px solid #e0e0e0;
-            font-size: 11px;
-            font-family: 'Courier New', monospace;
+            font-size: 12px;
             color: #333;
-            white-space: pre-wrap;
             word-break: break-word;
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
+        }
+
+        .progress-item-data.message-content {
+            font-family: -apple-system, BlinkSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .progress-item-data.code-content {
+            font-family: 'Courier New', 'Monaco', 'Consolas', monospace;
+            font-size: 11px;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            border: 1px solid #e9ecef;
+        }
+
+        .progress-item-data.attachment-list {
+            font-family: -apple-system, BlinkSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .attachment-summary {
+            margin-top: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .attachment-summary-item {
+            padding: 4px 0;
+            color: #666;
         }
 
         .progress-item-data.collapsed {
@@ -2300,26 +2372,164 @@
                         icon.textContent = '▶';
                         
                         progHeader.appendChild(message);
-                        if (prog.data) {
-                            progHeader.appendChild(icon);
-                        }
                         
-                        // Progress data (JSON)
+                        // Progress data - formatted based on event type
                         const progData = document.createElement('div');
                         progData.className = 'progress-item-data collapsed';
+                        
+                        let hasContent = false;
+                        
                         if (prog.data) {
-                            try {
-                                const jsonStr = typeof prog.data === 'string' 
-                                    ? prog.data 
-                                    : JSON.stringify(prog.data, null, 2);
-                                progData.textContent = jsonStr;
-                            } catch (e) {
-                                progData.textContent = String(prog.data);
+                            hasContent = true;
+                            let contentWrapper = document.createElement('div');
+                            
+                            if (prog.type === 'request') {
+                                // Show text and list of attachments (as strings)
+                                progData.className += ' message-content attachment-list';
+                                const msgData = prog.data;
+                                
+                                if (msgData && msgData.text) {
+                                    const textDiv = document.createElement('div');
+                                    textDiv.textContent = msgData.text;
+                                    textDiv.style.marginBottom = (msgData.attachments && Array.isArray(msgData.attachments) && msgData.attachments.length > 0) ? '12px' : '0';
+                                    contentWrapper.appendChild(textDiv);
+                                }
+                                
+                                if (msgData && msgData.attachments && Array.isArray(msgData.attachments) && msgData.attachments.length > 0) {
+                                    const attSummary = document.createElement('div');
+                                    attSummary.className = 'attachment-summary';
+                                    
+                                    const attHeader = document.createElement('div');
+                                    attHeader.style.fontWeight = '600';
+                                    attHeader.style.marginBottom = '6px';
+                                    attHeader.style.color = '#333';
+                                    attHeader.textContent = `Attachments (${msgData.attachments.length}):`;
+                                    attSummary.appendChild(attHeader);
+                                    
+                                    msgData.attachments.forEach((att, idx) => {
+                                        const attItem = document.createElement('div');
+                                        attItem.className = 'attachment-summary-item';
+                                        if (typeof att === 'string') {
+                                            attItem.textContent = `${idx + 1}. ${att}`;
+                                        } else if (att && typeof att === 'object') {
+                                            // Format attachment as readable string
+                                            const attId = att.id || att.filename || 'unnamed';
+                                            const objCount = (att.objects && Array.isArray(att.objects)) ? att.objects.length : 0;
+                                            attItem.textContent = `${idx + 1}. ${attId}${objCount > 0 ? ` (${objCount} objects)` : ''}`;
+                                        } else {
+                                            attItem.textContent = `${idx + 1}. ${String(att)}`;
+                                        }
+                                        attSummary.appendChild(attItem);
+                                    });
+                                    
+                                    contentWrapper.appendChild(attSummary);
+                                } else if (msgData && msgData.text) {
+                                    const noAttDiv = document.createElement('div');
+                                    noAttDiv.className = 'attachment-summary';
+                                    noAttDiv.style.fontStyle = 'italic';
+                                    noAttDiv.style.color = '#999';
+                                    noAttDiv.textContent = 'No attachments';
+                                    contentWrapper.appendChild(noAttDiv);
+                                } else if (!msgData || (!msgData.text && (!msgData.attachments || msgData.attachments.length === 0))) {
+                                    // Empty request message
+                                    const emptyDiv = document.createElement('div');
+                                    emptyDiv.style.fontStyle = 'italic';
+                                    emptyDiv.style.color = '#999';
+                                    emptyDiv.textContent = '(Empty request)';
+                                    contentWrapper.appendChild(emptyDiv);
+                                }
+                                
+                                progData.appendChild(contentWrapper);
+                                
+                            } else if (prog.type === 'prompt' || prog.type === 'answer') {
+                                // Show message text
+                                progData.className += ' message-content';
+                                const msgData = prog.data;
+                                
+                                if (msgData && msgData.text) {
+                                    progData.textContent = msgData.text;
+                                } else {
+                                    progData.textContent = '(No text content)';
+                                    progData.style.fontStyle = 'italic';
+                                    progData.style.color = '#999';
+                                }
+                                
+                            } else if (prog.type === 'extract') {
+                                // Show extracted code
+                                progData.className += ' code-content';
+                                if (typeof prog.data === 'string') {
+                                    progData.textContent = prog.data;
+                                } else {
+                                    progData.textContent = String(prog.data);
+                                }
+                                
+                            } else if (prog.type === 'execute') {
+                                // Show processed_code
+                                progData.className += ' code-content';
+                                const blockData = prog.data;
+                                
+                                const codeWrapper = document.createElement('div');
+                                codeWrapper.style.whiteSpace = 'pre-wrap';
+                                codeWrapper.style.wordBreak = 'break-word';
+                                
+                                if (blockData && blockData.processed_code) {
+                                    codeWrapper.textContent = blockData.processed_code;
+                                    progData.appendChild(codeWrapper);
+                                    
+                                    // Also show error if present
+                                    if (blockData.error) {
+                                        const errorDiv = document.createElement('div');
+                                        errorDiv.style.marginTop = '12px';
+                                        errorDiv.style.padding = '8px';
+                                        errorDiv.style.background = '#fff3cd';
+                                        errorDiv.style.border = '1px solid #ffc107';
+                                        errorDiv.style.borderRadius = '4px';
+                                        errorDiv.style.color = '#856404';
+                                        errorDiv.style.fontSize = '11px';
+                                        errorDiv.style.whiteSpace = 'pre-wrap';
+                                        errorDiv.style.wordBreak = 'break-word';
+                                        
+                                        const errorHeader = document.createElement('div');
+                                        errorHeader.style.fontWeight = '600';
+                                        errorHeader.style.marginBottom = '4px';
+                                        errorHeader.textContent = 'Error:';
+                                        errorDiv.appendChild(errorHeader);
+                                        
+                                        const errorMsg = document.createElement('div');
+                                        const errorMsgText = typeof blockData.error === 'string' 
+                                            ? blockData.error 
+                                            : (blockData.error.message || JSON.stringify(blockData.error, null, 2));
+                                        errorMsg.textContent = errorMsgText;
+                                        errorDiv.appendChild(errorMsg);
+                                        
+                                        progData.appendChild(errorDiv);
+                                    }
+                                } else if (blockData && blockData.generated_code) {
+                                    codeWrapper.textContent = blockData.generated_code;
+                                    progData.appendChild(codeWrapper);
+                                } else {
+                                    codeWrapper.textContent = '(No code available)';
+                                    codeWrapper.style.fontStyle = 'italic';
+                                    codeWrapper.style.color = '#999';
+                                    progData.appendChild(codeWrapper);
+                                }
+                                
+                            } else {
+                                // Fallback: show JSON for unknown types
+                                progData.className += ' code-content';
+                                try {
+                                    const jsonStr = typeof prog.data === 'string' 
+                                        ? prog.data 
+                                        : JSON.stringify(prog.data, null, 2);
+                                    progData.textContent = jsonStr;
+                                } catch (e) {
+                                    progData.textContent = String(prog.data);
+                                }
                             }
                         }
                         
-                        // Toggle on click
-                        if (prog.data) {
+                        if (hasContent) {
+                            progHeader.appendChild(icon);
                             progHeader.addEventListener('click', () => {
                                 progData.classList.toggle('collapsed');
                                 icon.classList.toggle('collapsed');
@@ -2327,10 +2537,164 @@
                         }
                         
                         progItem.appendChild(progHeader);
-                        if (prog.data) {
+                        if (hasContent) {
                             progItem.appendChild(progData);
                         }
                         progressEvents.appendChild(progItem);
+                        
+                        // For execute events, add separate items for feedback and response if they exist
+                        if (prog.type === 'execute' && prog.data) {
+                            const blockData = prog.data;
+                            
+                            // Add feedback item if present
+                            if (blockData.feedback) {
+                                const feedbackItem = document.createElement('div');
+                                const severity = blockData.feedback.severity || 'info';
+                                feedbackItem.className = `progress-item feedback ${severity}`;
+                                
+                                const feedbackHeader = document.createElement('div');
+                                feedbackHeader.className = 'progress-item-header';
+                                
+                                const feedbackMsg = document.createElement('span');
+                                const feedbackType = blockData.feedback.type || 'Feedback';
+                                feedbackMsg.textContent = `Feedback (${severity}): ${feedbackType}`;
+                                feedbackHeader.appendChild(feedbackMsg);
+                                
+                                const feedbackIcon = document.createElement('span');
+                                feedbackIcon.className = 'progress-item-icon collapsed';
+                                feedbackIcon.textContent = '▶';
+                                feedbackHeader.appendChild(feedbackIcon);
+                                
+                                const feedbackData = document.createElement('div');
+                                feedbackData.className = 'progress-item-data collapsed message-content';
+                                
+                                // Show feedback text if available
+                                if (blockData.feedback.text) {
+                                    feedbackData.textContent = blockData.feedback.text;
+                                } else {
+                                    feedbackData.textContent = '(No feedback text)';
+                                    feedbackData.style.fontStyle = 'italic';
+                                    feedbackData.style.color = '#999';
+                                }
+                                
+                                // Show feedback details if available
+                                if (blockData.feedback.details && Object.keys(blockData.feedback.details).length > 0) {
+                                    const detailsDiv = document.createElement('div');
+                                    detailsDiv.style.marginTop = '8px';
+                                    detailsDiv.style.padding = '8px';
+                                    detailsDiv.style.background = '#f8f9fa';
+                                    detailsDiv.style.borderRadius = '4px';
+                                    detailsDiv.style.fontSize = '11px';
+                                    detailsDiv.style.fontFamily = "'Courier New', monospace";
+                                    
+                                    const detailsHeader = document.createElement('div');
+                                    detailsHeader.style.fontWeight = '600';
+                                    detailsHeader.style.marginBottom = '4px';
+                                    detailsHeader.textContent = 'Details:';
+                                    detailsDiv.appendChild(detailsHeader);
+                                    
+                                    const detailsContent = document.createElement('div');
+                                    detailsContent.style.whiteSpace = 'pre-wrap';
+                                    try {
+                                        detailsContent.textContent = JSON.stringify(blockData.feedback.details, null, 2);
+                                    } catch (e) {
+                                        detailsContent.textContent = String(blockData.feedback.details);
+                                    }
+                                    detailsDiv.appendChild(detailsContent);
+                                    
+                                    feedbackData.appendChild(detailsDiv);
+                                }
+                                
+                                // Show function if available
+                                if (blockData.feedback.function) {
+                                    const funcDiv = document.createElement('div');
+                                    funcDiv.style.marginTop = '8px';
+                                    funcDiv.style.fontSize = '11px';
+                                    funcDiv.style.color = '#666';
+                                    funcDiv.textContent = `Function: ${blockData.feedback.function}`;
+                                    feedbackData.appendChild(funcDiv);
+                                }
+                                
+                                feedbackHeader.addEventListener('click', () => {
+                                    feedbackData.classList.toggle('collapsed');
+                                    feedbackIcon.classList.toggle('collapsed');
+                                });
+                                
+                                feedbackItem.appendChild(feedbackHeader);
+                                feedbackItem.appendChild(feedbackData);
+                                progressEvents.appendChild(feedbackItem);
+                            }
+                            
+                            // Add response item if present
+                            if (blockData.response) {
+                                const responseItem = document.createElement('div');
+                                responseItem.className = 'progress-item response';
+                                
+                                const responseHeader = document.createElement('div');
+                                responseHeader.className = 'progress-item-header';
+                                
+                                const responseMsg = document.createElement('span');
+                                responseMsg.textContent = 'Execution Response';
+                                responseHeader.appendChild(responseMsg);
+                                
+                                const responseIcon = document.createElement('span');
+                                responseIcon.className = 'progress-item-icon collapsed';
+                                responseIcon.textContent = '▶';
+                                responseHeader.appendChild(responseIcon);
+                                
+                                const responseData = document.createElement('div');
+                                responseData.className = 'progress-item-data collapsed message-content';
+                                
+                                // Show response text if available
+                                if (blockData.response.text) {
+                                    responseData.textContent = blockData.response.text;
+                                } else {
+                                    responseData.textContent = '(No response text)';
+                                    responseData.style.fontStyle = 'italic';
+                                    responseData.style.color = '#999';
+                                }
+                                
+                                // Show attachments if available
+                                if (blockData.response.attachments && Array.isArray(blockData.response.attachments) && blockData.response.attachments.length > 0) {
+                                    const attSummary = document.createElement('div');
+                                    attSummary.className = 'attachment-summary';
+                                    attSummary.style.marginTop = '12px';
+                                    
+                                    const attHeader = document.createElement('div');
+                                    attHeader.style.fontWeight = '600';
+                                    attHeader.style.marginBottom = '6px';
+                                    attHeader.style.color = '#333';
+                                    attHeader.textContent = `Attachments (${blockData.response.attachments.length}):`;
+                                    attSummary.appendChild(attHeader);
+                                    
+                                    blockData.response.attachments.forEach((att, idx) => {
+                                        const attItem = document.createElement('div');
+                                        attItem.className = 'attachment-summary-item';
+                                        if (typeof att === 'string') {
+                                            attItem.textContent = `${idx + 1}. ${att}`;
+                                        } else if (att && typeof att === 'object') {
+                                            const attId = att.id || att.filename || 'unnamed';
+                                            const objCount = (att.objects && Array.isArray(att.objects)) ? att.objects.length : 0;
+                                            attItem.textContent = `${idx + 1}. ${attId}${objCount > 0 ? ` (${objCount} objects)` : ''}`;
+                                        } else {
+                                            attItem.textContent = `${idx + 1}. ${String(att)}`;
+                                        }
+                                        attSummary.appendChild(attItem);
+                                    });
+                                    
+                                    responseData.appendChild(attSummary);
+                                }
+                                
+                                responseHeader.addEventListener('click', () => {
+                                    responseData.classList.toggle('collapsed');
+                                    responseIcon.classList.toggle('collapsed');
+                                });
+                                
+                                responseItem.appendChild(responseHeader);
+                                responseItem.appendChild(responseData);
+                                progressEvents.appendChild(responseItem);
+                            }
+                        }
                     });
                     
                     // Toggle on click
