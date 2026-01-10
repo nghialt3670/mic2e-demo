@@ -476,9 +476,25 @@
             align-items: flex-start;
         }
 
+        .message-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .message-group.user .message-row {
+            justify-content: flex-end;
+        }
+
+        .message-group.assistant .message-row {
+            justify-content: flex-start;
+        }
+
         .message {
             padding: 12px 16px;
             border-radius: 8px;
+            position: relative;
         }
 
         .message.user {
@@ -489,6 +505,34 @@
         .message.assistant {
             background: #f0f0f0;
             color: #333;
+        }
+
+        .message-action-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            font-size: 16px;
+            flex-shrink: 0;
+            border-radius: 4px;
+        }
+
+        .message-action-btn:hover {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .message-group.user .message-action-btn {
+            color: #666;
+        }
+
+        .message-group.assistant .message-action-btn {
+            color: #666;
         }
 
         .message.error {
@@ -887,6 +931,7 @@
             cycles: [],
             context: null,
             isGenerating: false,
+            editingCycleIndex: null,  // Index of cycle being edited, null if not editing
             
             // Drawing state
             isArmedDraw: false,
@@ -1904,6 +1949,166 @@
             }
         }
 
+        // ===== Edit and Regenerate Functions =====
+        
+        function restoreTextWithMentions(text) {
+            // Parse text with mentions like: "Hello #FF0000[point](uuid) world"
+            const input = document.getElementById('messageInput');
+            input.innerHTML = '';
+            
+            const mentionPattern = /#([0-9A-Fa-f]{6})\[([^\]]+)\]\(([^)]+)\)/g;
+            let lastIndex = 0;
+            let match;
+            
+            while ((match = mentionPattern.exec(text)) !== null) {
+                // Add text before the mention
+                if (match.index > lastIndex) {
+                    const textNode = document.createTextNode(text.substring(lastIndex, match.index));
+                    input.appendChild(textNode);
+                }
+                
+                // Add mention
+                const colorCode = match[1];
+                const label = match[2];
+                const value = match[3];
+                
+                const mention = document.createElement('span');
+                mention.className = 'mention';
+                mention.contentEditable = 'false';
+                mention.setAttribute('data-value', value);
+                mention.setAttribute('data-label', label);
+                mention.setAttribute('data-color', colorCode);
+                mention.style.backgroundColor = `#${colorCode}20`;
+                mention.style.color = `#${colorCode}`;
+                mention.textContent = `@${label}`;
+                
+                input.appendChild(mention);
+                
+                lastIndex = mentionPattern.lastIndex;
+            }
+            
+            // Add remaining text
+            if (lastIndex < text.length) {
+                const textNode = document.createTextNode(text.substring(lastIndex));
+                input.appendChild(textNode);
+            }
+            
+            // Move cursor to end
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(input);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+
+        async function restoreImagesFromAttachments(attachments) {
+            if (!attachments || attachments.length === 0) {
+                state.uploadedFigObjects = [];
+                state.currentFigObject = null;
+                state.fabricCanvas.clear();
+                updateImageCount();
+                await renderGallery();
+                return;
+            }
+            
+            // Restore all images from attachments
+            state.uploadedFigObjects = attachments.map(att => {
+                // Clone the fig object to avoid reference issues
+                const figObj = JSON.parse(JSON.stringify(att.content));
+                return figObj;
+            });
+            
+            // Restore references from annotations in the images
+            state.references = [];
+            for (const figObj of state.uploadedFigObjects) {
+                // Check for image-level reference (whole image selection)
+                if (figObj.reference) {
+                    state.references.push({
+                        value: figObj.reference.value,
+                        label: figObj.reference.label,
+                        color: figObj.reference.color || '#FF0000',
+                        objectId: figObj.id
+                    });
+                }
+                
+                // Check for object-level references (annotations)
+                if (figObj.objects && Array.isArray(figObj.objects)) {
+                    for (const obj of figObj.objects) {
+                        if (obj.reference) {
+                            state.references.push({
+                                value: obj.reference.value,
+                                label: obj.reference.label,
+                                color: obj.reference.color || '#FF0000',
+                                objectId: obj.id
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // Load the first image into the editor
+            if (state.uploadedFigObjects.length > 0) {
+                state.currentFigObject = state.uploadedFigObjects[0];
+                await loadFigObject(state.currentFigObject);
+            } else {
+                state.currentFigObject = null;
+                state.fabricCanvas.clear();
+            }
+            
+            updateImageCount();
+            await renderGallery();
+        }
+
+        async function editRequest(cycleIndex) {
+            if (cycleIndex < 0 || cycleIndex >= state.cycles.length) return;
+            if (state.isGenerating) return;  // Don't allow editing while generating
+            
+            const cycle = state.cycles[cycleIndex];
+            if (!cycle.request) return;
+            
+            // Set editing mode - truncate cycles after this index when sending
+            state.editingCycleIndex = cycleIndex;
+            
+            // Restore message text with mentions
+            if (cycle.request.text) {
+                restoreTextWithMentions(cycle.request.text);
+            } else {
+                document.getElementById('messageInput').innerHTML = '';
+            }
+            
+            // Restore images and annotations
+            await restoreImagesFromAttachments(cycle.request.attachments);
+            
+            // Scroll to input
+            document.getElementById('messageInput').focus();
+            updateSendButtonState();
+        }
+
+        async function regenerateResponse(cycleIndex) {
+            if (cycleIndex < 0 || cycleIndex >= state.cycles.length) return;
+            if (state.isGenerating) return;  // Don't allow regenerating while generating
+            
+            const cycle = state.cycles[cycleIndex];
+            if (!cycle.request) return;
+            
+            // Set editing mode - truncate cycles after this index when sending
+            state.editingCycleIndex = cycleIndex;
+            
+            // Restore request message text with mentions
+            if (cycle.request.text) {
+                restoreTextWithMentions(cycle.request.text);
+            } else {
+                document.getElementById('messageInput').innerHTML = '';
+            }
+            
+            // Restore images and annotations from the request
+            await restoreImagesFromAttachments(cycle.request.attachments);
+            
+            // Immediately send to regenerate
+            await sendMessage();
+        }
+
         async function renderAttachments(attachments, container) {
             if (!attachments || attachments.length === 0) return;
 
@@ -2009,7 +2214,8 @@
                 return;
             }
 
-            for (const cycle of state.cycles) {
+            for (let cycleIndex = 0; cycleIndex < state.cycles.length; cycleIndex++) {
+                const cycle = state.cycles[cycleIndex];
                 const cycleDiv = document.createElement('div');
                 cycleDiv.className = 'cycle';
 
@@ -2018,14 +2224,25 @@
                     const messageGroup = document.createElement('div');
                     messageGroup.className = 'message-group user';
 
+                    // Message row container (button + message)
+                    const messageRow = document.createElement('div');
+                    messageRow.className = 'message-row';
+                    
+                    // Edit button (pencil icon) - left of message
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'message-action-btn';
+                    editBtn.innerHTML = '✏️';
+                    editBtn.title = 'Edit request';
+                    editBtn.addEventListener('click', () => editRequest(cycleIndex));
+                    messageRow.appendChild(editBtn);
+                    
                     const requestDiv = document.createElement('div');
                     requestDiv.className = 'message user';
-                    
-                    // Render text with styled mentions
                     const textContent = renderMessageText(cycle.request.text || 'Image edit request');
                     requestDiv.appendChild(textContent);
+                    messageRow.appendChild(requestDiv);
                     
-                    messageGroup.appendChild(requestDiv);
+                    messageGroup.appendChild(messageRow);
 
                     // Show request attachments (aligned right with message)
                     if (cycle.request.attachments) {
@@ -2132,14 +2349,25 @@
                     const messageGroup = document.createElement('div');
                     messageGroup.className = 'message-group assistant';
 
+                    // Message row container (message + button)
+                    const messageRow = document.createElement('div');
+                    messageRow.className = 'message-row';
+                    
                     const responseDiv = document.createElement('div');
                     responseDiv.className = 'message assistant';
-                    
-                    // Render text with styled mentions
                     const textContent = renderMessageText(cycle.response.text || 'Edit complete');
                     responseDiv.appendChild(textContent);
+                    messageRow.appendChild(responseDiv);
                     
-                    messageGroup.appendChild(responseDiv);
+                    // Regenerate button (loop icon) - right of message
+                    const regenerateBtn = document.createElement('button');
+                    regenerateBtn.className = 'message-action-btn';
+                    regenerateBtn.innerHTML = '🔄';
+                    regenerateBtn.title = 'Regenerate response';
+                    regenerateBtn.addEventListener('click', () => regenerateResponse(cycleIndex));
+                    messageRow.appendChild(regenerateBtn);
+                    
+                    messageGroup.appendChild(messageRow);
 
                     // Show response attachments (aligned left with message)
                     if (cycle.response.attachments) {
@@ -2175,6 +2403,12 @@
 
             // Save current fig to ensure latest annotations are included
             saveFigFile();
+
+            // If editing, truncate cycles to the editing index (discard everything after)
+            if (state.editingCycleIndex !== null) {
+                state.cycles = state.cycles.slice(0, state.editingCycleIndex);
+                state.editingCycleIndex = null;  // Clear editing mode
+            }
 
             // Create attachments from all uploaded images (with current annotations)
             const attachments = state.uploadedFigObjects.map(figObj => ({
@@ -2483,6 +2717,7 @@
             state.uploadedFigObjects = [];
             state.currentFigObject = null;
             state.references = [];
+            state.editingCycleIndex = null;
             
             // Clear UI
             state.fabricCanvas.clear();
