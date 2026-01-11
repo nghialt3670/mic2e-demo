@@ -434,6 +434,22 @@
             border-color: #007bff;
         }
 
+        .config-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .config-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
         .config-row {
             display: flex;
             gap: 8px;
@@ -583,6 +599,36 @@
             display: none;
         }
 
+        .loading-placeholder {
+            margin: 12px 0;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #007bff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            font-size: 13px;
+            color: #666;
+        }
+
         .progress-item {
             font-size: 13px;
             background: #f9f9f9;
@@ -592,52 +638,67 @@
             margin-bottom: 4px;
         }
 
-        .progress-item.request {
-            border-left-color: #6c757d;
-        }
-
-        .progress-item.prompt {
-            border-left-color: #17a2b8;
-        }
-
-        .progress-item.answer {
-            border-left-color: #ffc107;
-        }
-
-        .progress-item.extract {
-            border-left-color: #6610f2;
-        }
-
-        .progress-item.execute {
-            border-left-color: #28a745;
-        }
-
-        .progress-item.feedback {
-            border-left-color: #fd7e14;
-        }
-
-        .progress-item.feedback.info {
-            border-left-color: #17a2b8;
-        }
-
-        .progress-item.feedback.warning {
-            border-left-color: #ffc107;
-        }
-
-        .progress-item.feedback.error {
-            border-left-color: #dc3545;
-        }
-
-        .progress-item.response {
-            border-left-color: #6f42c1;
-        }
-
         .progress-item.complete {
             border-left-color: #28a745;
         }
 
         .progress-item.error {
             border-left-color: #dc3545;
+        }
+
+        /* Command execution states */
+        .progress-item.commands {
+            border-left-color: #6c757d; /* Gray - not executed */
+        }
+
+        .progress-item.commands.executing {
+            border-left-color: #007bff; /* Blue - executing */
+        }
+
+        .progress-item.commands.success {
+            border-left-color: #28a745; /* Green - success */
+        }
+
+        .progress-item.commands.warning {
+            border-left-color: #ffc107; /* Yellow - feedback */
+        }
+
+        .progress-item.commands.error {
+            border-left-color: #dc3545; /* Red - error */
+        }
+
+        /* Command line highlighting within commands block */
+        .command-line {
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: baseline;
+        }
+
+        .command-line-text {
+            flex: 1;
+        }
+
+        .command-line-timer {
+            color: #666;
+            font-size: 11px;
+            margin-left: 8px;
+            font-family: monospace;
+        }
+
+        .command-line.executing {
+            background-color: #e7f3ff;
+        }
+
+        .command-line.success {
+            background-color: #d4edda;
+        }
+
+        .command-line.warning {
+            background-color: #fff3cd;
+        }
+
+        .command-line.error {
+            background-color: #f8d7da;
         }
 
         .progress-item-header {
@@ -958,6 +1019,20 @@
                         </div>
                     </div>
                     
+                    <div class="config-group">
+                        <label class="config-checkbox-label">
+                            <input type="checkbox" class="config-checkbox" id="showProgress" checked>
+                            <span>Show Progress (for debugging)</span>
+                        </label>
+                    </div>
+                    
+                    <div class="config-group">
+                        <label class="config-checkbox-label">
+                            <input type="checkbox" class="config-checkbox" id="enableInteraction" checked>
+                            <span>Enable Interaction (point, box, scribble annotations)</span>
+                        </label>
+                    </div>
+                    
                     <div class="session-controls">
                         <button class="session-btn" id="saveBtn" title="Save chat session to file" disabled>
                             <span>💾</span>
@@ -1027,6 +1102,8 @@
                 llmModel: 'gemini-2.0-flash-exp',
                 maxPromptCycles: 5,
                 maxLlmExchanges: 2,
+                showProgress: true, // Default to showing progress for debugging
+                enableInteraction: true, // Default to enabling interaction features
             }
         };
 
@@ -1507,9 +1584,16 @@
             setupInteractions(state.fabricCanvas);
         }
 
+        function updateInteractionFeatures() {
+            // This function is called when the interaction setting changes
+            // The actual disabling is done by checking state.config.enableInteraction in event handlers
+        }
+
         function setupInteractions(canvas) {
             canvas.on('mouse:down', (e) => {
                 if (!e.pointer) return;
+                // Disable interaction features if interaction is disabled
+                if (!state.config.enableInteraction) return;
                 const fig = canvas.getObjects()[0];
                 if (!fig) return;
 
@@ -1540,6 +1624,8 @@
 
             canvas.on('mouse:move', (e) => {
                 if (!e.pointer || !state.mouseDownPoint) return;
+                // Disable interaction features if interaction is disabled
+                if (!state.config.enableInteraction) return;
                 const fig = canvas.getObjects()[0];
                 if (!fig) return;
 
@@ -1619,6 +1705,8 @@
 
             canvas.on('mouse:up', (e) => {
                 if (!e.pointer || !state.mouseDownPoint) return;
+                // Disable interaction features if interaction is disabled
+                if (!state.config.enableInteraction) return;
                 const fig = canvas.getObjects()[0];
                 if (!fig) return;
 
@@ -1857,7 +1945,7 @@
                     // No images left
                     state.currentFigObject = null;
                     state.fabricCanvas.clear();
-                    document.getElementById('sendBtn').disabled = true;
+                    updateSendButtonState();  // Update send button state based on text input
                 }
             }
             
@@ -2266,6 +2354,29 @@
             return div;
         }
 
+        // Extract thinking and commands from answer text (same logic as OtcPromptingStrategy)
+        function extractThinkingAndCommands(text) {
+            const parts = text
+                .replace(/observation:/g, '$')
+                .replace(/thinking:/g, '$')
+                .replace(/commands:/g, '$')
+                .split('$')
+                .map(p => p.trim())
+                .filter(p => p);
+
+            if (parts.length < 2) {
+                return { thinking: '', commands: '' };
+            }
+
+            const thinking = parts[parts.length - 2] || '';
+            
+            // Extract code from ```python blocks
+            const codeMatch = parts[parts.length - 1].match(/```python([\s\S]*?)```/);
+            const commands = codeMatch ? codeMatch[1].trim() : '';
+
+            return { thinking, commands };
+        }
+
         async function renderChat() {
             const container = document.getElementById('chatMessages');
             container.innerHTML = '';
@@ -2290,6 +2401,7 @@
                 const cycle = state.cycles[cycleIndex];
                 const cycleDiv = document.createElement('div');
                 cycleDiv.className = 'cycle';
+                cycleDiv.setAttribute('data-cycle-index', cycleIndex);
 
                 // Request message with attachments
                 if (cycle.request) {
@@ -2324,8 +2436,12 @@
                     cycleDiv.appendChild(messageGroup);
                 }
 
-                // Progress messages (collapsible)
-                if (cycle.progress && cycle.progress.length > 0) {
+                // Progress messages (collapsible) or loading placeholder
+                const isComplete = cycle.response || cycle.error;
+                const isGenerating = !isComplete; // Generating if no response/error yet
+                
+                if (state.config.showProgress && cycle.progress && cycle.progress.length > 0) {
+                    // Show detailed progress
                     const progressContainer = document.createElement('div');
                     progressContainer.className = 'progress-container';
                     
@@ -2334,14 +2450,28 @@
                     progressHeader.className = 'progress-header';
                     
                     const headerText = document.createElement('span');
-                    headerText.textContent = `Progress (${cycle.progress.length} steps)`;
+                    // Count actual visible items (thinking + commands + feedback items)
+                    let visibleCount = 0;
+                    let hasAnswer = false;
+                    let feedbackCount = 0;
+                    cycle.progress.forEach(p => {
+                        if (p.type === 'answer' && p.data && p.data.text && !hasAnswer) {
+                            hasAnswer = true;
+                            const { thinking, commands } = extractThinkingAndCommands(p.data.text);
+                            if (thinking) visibleCount++;
+                            if (commands) visibleCount++;
+                        } else if (p.type === 'execute' && p.data && p.data.feedback) {
+                            feedbackCount++;
+                        }
+                    });
+                    visibleCount += feedbackCount;
+                    headerText.textContent = `Progress (${visibleCount} steps)`;
                     
                     const toggleIcon = document.createElement('span');
                     toggleIcon.className = 'toggle-icon';
                     toggleIcon.textContent = '▼';
                     
                     // Auto-collapse if response is complete
-                    const isComplete = cycle.response || cycle.error;
                     if (isComplete) {
                         toggleIcon.classList.add('collapsed');
                     }
@@ -2356,343 +2486,384 @@
                         progressEvents.classList.add('collapsed');
                     }
                     
-                    cycle.progress.forEach(prog => {
-                        const progItem = document.createElement('div');
-                        progItem.className = `progress-item ${prog.type}`;
-                        
-                        // Progress header
-                        const progHeader = document.createElement('div');
-                        progHeader.className = 'progress-item-header';
-                        
-                        const message = document.createElement('span');
-                        message.textContent = prog.message || prog.type;
-                        
-                        const icon = document.createElement('span');
-                        icon.className = 'progress-item-icon collapsed';
-                        icon.textContent = '▶';
-                        
-                        progHeader.appendChild(message);
-                        
-                        // Progress data - formatted based on event type
-                        const progData = document.createElement('div');
-                        progData.className = 'progress-item-data collapsed';
-                        
-                        let hasContent = false;
-                        
-                        if (prog.data) {
-                            hasContent = true;
-                            let contentWrapper = document.createElement('div');
-                            
-                            if (prog.type === 'request') {
-                                // Show text and list of attachments (as strings)
-                                progData.className += ' message-content attachment-list';
-                                const msgData = prog.data;
-                                
-                                if (msgData && msgData.text) {
-                                    const textDiv = document.createElement('div');
-                                    textDiv.textContent = msgData.text;
-                                    textDiv.style.marginBottom = (msgData.attachments && Array.isArray(msgData.attachments) && msgData.attachments.length > 0) ? '12px' : '0';
-                                    contentWrapper.appendChild(textDiv);
-                                }
-                                
-                                if (msgData && msgData.attachments && Array.isArray(msgData.attachments) && msgData.attachments.length > 0) {
-                                    const attSummary = document.createElement('div');
-                                    attSummary.className = 'attachment-summary';
-                                    
-                                    const attHeader = document.createElement('div');
-                                    attHeader.style.fontWeight = '600';
-                                    attHeader.style.marginBottom = '6px';
-                                    attHeader.style.color = '#333';
-                                    attHeader.textContent = `Attachments (${msgData.attachments.length}):`;
-                                    attSummary.appendChild(attHeader);
-                                    
-                                    msgData.attachments.forEach((att, idx) => {
-                                        const attItem = document.createElement('div');
-                                        attItem.className = 'attachment-summary-item';
-                                        if (typeof att === 'string') {
-                                            attItem.textContent = `${idx + 1}. ${att}`;
-                                        } else if (att && typeof att === 'object') {
-                                            // Format attachment as readable string
-                                            const attId = att.id || att.filename || 'unnamed';
-                                            const objCount = (att.objects && Array.isArray(att.objects)) ? att.objects.length : 0;
-                                            attItem.textContent = `${idx + 1}. ${attId}${objCount > 0 ? ` (${objCount} objects)` : ''}`;
-                                        } else {
-                                            attItem.textContent = `${idx + 1}. ${String(att)}`;
-                                        }
-                                        attSummary.appendChild(attItem);
-                                    });
-                                    
-                                    contentWrapper.appendChild(attSummary);
-                                } else if (msgData && msgData.text) {
-                                    const noAttDiv = document.createElement('div');
-                                    noAttDiv.className = 'attachment-summary';
-                                    noAttDiv.style.fontStyle = 'italic';
-                                    noAttDiv.style.color = '#999';
-                                    noAttDiv.textContent = 'No attachments';
-                                    contentWrapper.appendChild(noAttDiv);
-                                } else if (!msgData || (!msgData.text && (!msgData.attachments || msgData.attachments.length === 0))) {
-                                    // Empty request message
-                                    const emptyDiv = document.createElement('div');
-                                    emptyDiv.style.fontStyle = 'italic';
-                                    emptyDiv.style.color = '#999';
-                                    emptyDiv.textContent = '(Empty request)';
-                                    contentWrapper.appendChild(emptyDiv);
-                                }
-                                
-                                progData.appendChild(contentWrapper);
-                                
-                            } else if (prog.type === 'prompt' || prog.type === 'answer') {
-                                // Show message text
-                                progData.className += ' message-content';
-                                const msgData = prog.data;
-                                
-                                if (msgData && msgData.text) {
-                                    progData.textContent = msgData.text;
-                                } else {
-                                    progData.textContent = '(No text content)';
-                                    progData.style.fontStyle = 'italic';
-                                    progData.style.color = '#999';
-                                }
-                                
-                            } else if (prog.type === 'extract') {
-                                // Show extracted code
-                                progData.className += ' code-content';
-                                if (typeof prog.data === 'string') {
-                                    progData.textContent = prog.data;
-                                } else {
-                                    progData.textContent = String(prog.data);
-                                }
-                                
-                            } else if (prog.type === 'execute') {
-                                // Show processed_code
-                                progData.className += ' code-content';
-                                const blockData = prog.data;
-                                
-                                const codeWrapper = document.createElement('div');
-                                codeWrapper.style.whiteSpace = 'pre-wrap';
-                                codeWrapper.style.wordBreak = 'break-word';
-                                
-                                if (blockData && blockData.processed_code) {
-                                    codeWrapper.textContent = blockData.processed_code;
-                                    progData.appendChild(codeWrapper);
-                                    
-                                    // Also show error if present
-                                    if (blockData.error) {
-                                        const errorDiv = document.createElement('div');
-                                        errorDiv.style.marginTop = '12px';
-                                        errorDiv.style.padding = '8px';
-                                        errorDiv.style.background = '#fff3cd';
-                                        errorDiv.style.border = '1px solid #ffc107';
-                                        errorDiv.style.borderRadius = '4px';
-                                        errorDiv.style.color = '#856404';
-                                        errorDiv.style.fontSize = '11px';
-                                        errorDiv.style.whiteSpace = 'pre-wrap';
-                                        errorDiv.style.wordBreak = 'break-word';
-                                        
-                                        const errorHeader = document.createElement('div');
-                                        errorHeader.style.fontWeight = '600';
-                                        errorHeader.style.marginBottom = '4px';
-                                        errorHeader.textContent = 'Error:';
-                                        errorDiv.appendChild(errorHeader);
-                                        
-                                        const errorMsg = document.createElement('div');
-                                        const errorMsgText = typeof blockData.error === 'string' 
-                                            ? blockData.error 
-                                            : (blockData.error.message || JSON.stringify(blockData.error, null, 2));
-                                        errorMsg.textContent = errorMsgText;
-                                        errorDiv.appendChild(errorMsg);
-                                        
-                                        progData.appendChild(errorDiv);
-                                    }
-                                } else if (blockData && blockData.generated_code) {
-                                    codeWrapper.textContent = blockData.generated_code;
-                                    progData.appendChild(codeWrapper);
-                                } else {
-                                    codeWrapper.textContent = '(No code available)';
-                                    codeWrapper.style.fontStyle = 'italic';
-                                    codeWrapper.style.color = '#999';
-                                    progData.appendChild(codeWrapper);
-                                }
-                                
-                            } else {
-                                // Fallback: show JSON for unknown types
-                                progData.className += ' code-content';
-                                try {
-                                    const jsonStr = typeof prog.data === 'string' 
-                                        ? prog.data 
-                                        : JSON.stringify(prog.data, null, 2);
-                                    progData.textContent = jsonStr;
-                                } catch (e) {
-                                    progData.textContent = String(prog.data);
-                                }
+                    // Clear all timers for this cycle before rendering to prevent stale timers
+                    Object.keys(window).forEach(key => {
+                        if (key.startsWith(`__timer_timer-${cycleIndex}-`)) {
+                            if (window[key]) {
+                                clearInterval(window[key]);
+                                window[key] = null;
+                                delete window[key];
                             }
                         }
+                    });
+                    
+                    // Track commands items and their associated execute events
+                    const commandsItemsMap = new Map(); // answer index -> { element, text, lines }
+                    const executeEventsByAnswer = new Map(); // answer index -> [execute events]
+                    
+                    // Group events by answer to maintain sequence
+                    let currentAnswerIndex = -1;
+                    cycle.progress.forEach((prog, idx) => {
+                        if (prog.type === 'answer' && prog.data && prog.data.text) {
+                            currentAnswerIndex++;
+                            executeEventsByAnswer.set(currentAnswerIndex, []);
+                        } else if (prog.type === 'execute' && currentAnswerIndex >= 0) {
+                            const events = executeEventsByAnswer.get(currentAnswerIndex) || [];
+                            events.push({ prog, idx });
+                            executeEventsByAnswer.set(currentAnswerIndex, events);
+                        }
+                    });
+                    
+                    // Helper function to update command line with timer
+                    function updateCommandLine(commandsItem, commandsText, commandsLines, blockData, processedCode, cycleIdx) {
+                        const commandsData = commandsItem.querySelector('.progress-item-data');
+                        if (!commandsData) return;
                         
-                        if (hasContent) {
-                            progHeader.appendChild(icon);
-                            progHeader.addEventListener('click', () => {
-                                progData.classList.toggle('collapsed');
-                                icon.classList.toggle('collapsed');
+                        const lineContainers = commandsData.querySelectorAll('.command-line');
+                        const processedLines = processedCode.split('\n').map(l => l.trim());
+                        
+                        // Normalize code for matching
+                        function normalizeCode(code) {
+                            return code
+                                .replace(/^\s*await\s+/g, '')
+                                .replace(/\s+/g, ' ')
+                                .trim();
+                        }
+                        
+                        let matchedLineIndex = -1;
+                        const normalizedProcessed = normalizeCode(processedCode);
+                        
+                        // Check each command line
+                        for (let i = 0; i < commandsLines.length; i++) {
+                            const cmdLine = commandsLines[i].trim();
+                            if (!cmdLine) continue;
+                            
+                            const normalizedCmd = normalizeCode(cmdLine);
+                            
+                            if (normalizedProcessed === normalizedCmd || 
+                                normalizedProcessed.includes(normalizedCmd) ||
+                                normalizedCmd.includes(normalizedProcessed)) {
+                                matchedLineIndex = i;
+                                break;
+                            }
+                            
+                            const matches = processedLines.some(procLine => {
+                                const normalizedProc = normalizeCode(procLine);
+                                return normalizedProc === normalizedCmd || 
+                                       normalizedProc.includes(normalizedCmd) ||
+                                       normalizedCmd.includes(normalizedProc);
                             });
-                        }
-                        
-                        progItem.appendChild(progHeader);
-                        if (hasContent) {
-                            progItem.appendChild(progData);
-                        }
-                        progressEvents.appendChild(progItem);
-                        
-                        // For execute events, add separate items for feedback and response if they exist
-                        if (prog.type === 'execute' && prog.data) {
-                            const blockData = prog.data;
                             
-                            // Add feedback item if present
-                            if (blockData.feedback) {
-                                const feedbackItem = document.createElement('div');
-                                const severity = blockData.feedback.severity || 'info';
-                                feedbackItem.className = `progress-item feedback ${severity}`;
-                                
-                                const feedbackHeader = document.createElement('div');
-                                feedbackHeader.className = 'progress-item-header';
-                                
-                                const feedbackMsg = document.createElement('span');
-                                const feedbackType = blockData.feedback.type || 'Feedback';
-                                feedbackMsg.textContent = `Feedback (${severity}): ${feedbackType}`;
-                                feedbackHeader.appendChild(feedbackMsg);
-                                
-                                const feedbackIcon = document.createElement('span');
-                                feedbackIcon.className = 'progress-item-icon collapsed';
-                                feedbackIcon.textContent = '▶';
-                                feedbackHeader.appendChild(feedbackIcon);
-                                
-                                const feedbackData = document.createElement('div');
-                                feedbackData.className = 'progress-item-data collapsed message-content';
-                                
-                                // Show feedback text if available
-                                if (blockData.feedback.text) {
-                                    feedbackData.textContent = blockData.feedback.text;
-                                } else {
-                                    feedbackData.textContent = '(No feedback text)';
-                                    feedbackData.style.fontStyle = 'italic';
-                                    feedbackData.style.color = '#999';
-                                }
-                                
-                                // Show feedback details if available
-                                if (blockData.feedback.details && Object.keys(blockData.feedback.details).length > 0) {
-                                    const detailsDiv = document.createElement('div');
-                                    detailsDiv.style.marginTop = '8px';
-                                    detailsDiv.style.padding = '8px';
-                                    detailsDiv.style.background = '#f8f9fa';
-                                    detailsDiv.style.borderRadius = '4px';
-                                    detailsDiv.style.fontSize = '11px';
-                                    detailsDiv.style.fontFamily = "'Courier New', monospace";
-                                    
-                                    const detailsHeader = document.createElement('div');
-                                    detailsHeader.style.fontWeight = '600';
-                                    detailsHeader.style.marginBottom = '4px';
-                                    detailsHeader.textContent = 'Details:';
-                                    detailsDiv.appendChild(detailsHeader);
-                                    
-                                    const detailsContent = document.createElement('div');
-                                    detailsContent.style.whiteSpace = 'pre-wrap';
-                                    try {
-                                        detailsContent.textContent = JSON.stringify(blockData.feedback.details, null, 2);
-                                    } catch (e) {
-                                        detailsContent.textContent = String(blockData.feedback.details);
+                            if (matches) {
+                                matchedLineIndex = i;
+                                break;
+                            }
+                        }
+                        
+                        // Try function name matching
+                        if (matchedLineIndex === -1 && processedLines.length > 0) {
+                            const firstProcLine = normalizeCode(processedLines[0]);
+                            const funcMatch = firstProcLine.match(/(\w+)\s*\(/);
+                            if (funcMatch) {
+                                const funcName = funcMatch[1];
+                                for (let i = 0; i < commandsLines.length; i++) {
+                                    const cmdLine = commandsLines[i].trim();
+                                    if (!cmdLine) continue;
+                                    const normalizedCmd = normalizeCode(cmdLine);
+                                    if (normalizedCmd.includes(funcName + '(') || normalizedCmd.includes('=' + funcName)) {
+                                        matchedLineIndex = i;
+                                        break;
                                     }
-                                    detailsDiv.appendChild(detailsContent);
-                                    
-                                    feedbackData.appendChild(detailsDiv);
                                 }
-                                
-                                // Show function if available
-                                if (blockData.feedback.function) {
-                                    const funcDiv = document.createElement('div');
-                                    funcDiv.style.marginTop = '8px';
-                                    funcDiv.style.fontSize = '11px';
-                                    funcDiv.style.color = '#666';
-                                    funcDiv.textContent = `Function: ${blockData.feedback.function}`;
-                                    feedbackData.appendChild(funcDiv);
-                                }
-                                
-                                feedbackHeader.addEventListener('click', () => {
-                                    feedbackData.classList.toggle('collapsed');
-                                    feedbackIcon.classList.toggle('collapsed');
-                                });
-                                
-                                feedbackItem.appendChild(feedbackHeader);
-                                feedbackItem.appendChild(feedbackData);
-                                progressEvents.appendChild(feedbackItem);
+                            }
+                        }
+                        
+                        if (matchedLineIndex >= 0 && lineContainers[matchedLineIndex]) {
+                            const lineContainer = lineContainers[matchedLineIndex];
+                            const lineText = lineContainer.querySelector('.command-line-text');
+                            const lineTimer = lineContainer.querySelector('.command-line-timer');
+                            
+                            if (!lineText || !lineTimer) return;
+                            
+                            const hasStartTime = blockData.start_time !== null && blockData.start_time !== undefined;
+                            const hasEndTime = blockData.end_time !== null && blockData.end_time !== undefined;
+                            const hasFeedback = blockData.feedback !== null && blockData.feedback !== undefined;
+                            const hasError = blockData.error !== null && blockData.error !== undefined;
+                            
+                            // Remove previous state classes
+                            lineContainer.classList.remove('executing', 'success', 'warning', 'error');
+                            
+                            // Clear any existing timer for this line
+                            const timerKey = `timer-${cycleIdx}-${matchedLineIndex}`;
+                            if (window[`__timer_${timerKey}`]) {
+                                clearInterval(window[`__timer_${timerKey}`]);
+                                window[`__timer_${timerKey}`] = null;
+                                delete window[`__timer_${timerKey}`];
                             }
                             
-                            // Add response item if present
-                            if (blockData.response) {
-                                const responseItem = document.createElement('div');
-                                responseItem.className = 'progress-item response';
+                            if (hasStartTime && !hasEndTime) {
+                                // Executing - start timer
+                                lineContainer.classList.add('executing');
                                 
-                                const responseHeader = document.createElement('div');
-                                responseHeader.className = 'progress-item-header';
+                                const startNs = typeof blockData.start_time === 'string' 
+                                    ? parseInt(blockData.start_time, 10) 
+                                    : Number(blockData.start_time);
                                 
-                                const responseMsg = document.createElement('span');
-                                responseMsg.textContent = 'Execution Response';
-                                responseHeader.appendChild(responseMsg);
-                                
-                                const responseIcon = document.createElement('span');
-                                responseIcon.className = 'progress-item-icon collapsed';
-                                responseIcon.textContent = '▶';
-                                responseHeader.appendChild(responseIcon);
-                                
-                                const responseData = document.createElement('div');
-                                responseData.className = 'progress-item-data collapsed message-content';
-                                
-                                // Show response text if available
-                                if (blockData.response.text) {
-                                    responseData.textContent = blockData.response.text;
-                                } else {
-                                    responseData.textContent = '(No response text)';
-                                    responseData.style.fontStyle = 'italic';
-                                    responseData.style.color = '#999';
-                                }
-                                
-                                // Show attachments if available
-                                if (blockData.response.attachments && Array.isArray(blockData.response.attachments) && blockData.response.attachments.length > 0) {
-                                    const attSummary = document.createElement('div');
-                                    attSummary.className = 'attachment-summary';
-                                    attSummary.style.marginTop = '12px';
-                                    
-                                    const attHeader = document.createElement('div');
-                                    attHeader.style.fontWeight = '600';
-                                    attHeader.style.marginBottom = '6px';
-                                    attHeader.style.color = '#333';
-                                    attHeader.textContent = `Attachments (${blockData.response.attachments.length}):`;
-                                    attSummary.appendChild(attHeader);
-                                    
-                                    blockData.response.attachments.forEach((att, idx) => {
-                                        const attItem = document.createElement('div');
-                                        attItem.className = 'attachment-summary-item';
-                                        if (typeof att === 'string') {
-                                            attItem.textContent = `${idx + 1}. ${att}`;
-                                        } else if (att && typeof att === 'object') {
-                                            const attId = att.id || att.filename || 'unnamed';
-                                            const objCount = (att.objects && Array.isArray(att.objects)) ? att.objects.length : 0;
-                                            attItem.textContent = `${idx + 1}. ${attId}${objCount > 0 ? ` (${objCount} objects)` : ''}`;
-                                        } else {
-                                            attItem.textContent = `${idx + 1}. ${String(att)}`;
+                                const updateTimer = () => {
+                                    // Check if DOM element still exists (might have been re-rendered)
+                                    if (!lineContainer.isConnected || !lineTimer.isConnected) {
+                                        // DOM element removed, stop timer
+                                        if (window[`__timer_${timerKey}`]) {
+                                            clearInterval(window[`__timer_${timerKey}`]);
+                                            window[`__timer_${timerKey}`] = null;
+                                            delete window[`__timer_${timerKey}`];
                                         }
-                                        attSummary.appendChild(attItem);
-                                    });
+                                        return;
+                                    }
                                     
-                                    responseData.appendChild(attSummary);
+                                    // Check if this line still has executing class (execution might have completed)
+                                    if (!lineContainer.classList.contains('executing')) {
+                                        // Execution completed, stop timer
+                                        if (window[`__timer_${timerKey}`]) {
+                                            clearInterval(window[`__timer_${timerKey}`]);
+                                            window[`__timer_${timerKey}`] = null;
+                                            delete window[`__timer_${timerKey}`];
+                                        }
+                                        return;
+                                    }
+                                    
+                                    const nowNs = Date.now() * 1_000_000;
+                                    const elapsedNs = nowNs - startNs;
+                                    const elapsedMs = elapsedNs / 1_000_000;
+                                    const elapsedSeconds = Math.floor(elapsedMs / 1000);
+                                    lineTimer.textContent = ` (${elapsedSeconds}s...)`;
+                                };
+                                
+                                // Clear any existing timer first
+                                if (window[`__timer_${timerKey}`]) {
+                                    clearInterval(window[`__timer_${timerKey}`]);
                                 }
                                 
-                                responseHeader.addEventListener('click', () => {
-                                    responseData.classList.toggle('collapsed');
-                                    responseIcon.classList.toggle('collapsed');
+                                window[`__timer_${timerKey}`] = setInterval(updateTimer, 1000); // Update every second
+                                updateTimer();
+                                
+                            } else if (hasEndTime) {
+                                // Execution complete - stop timer and show final duration
+                                if (window[`__timer_${timerKey}`]) {
+                                    clearInterval(window[`__timer_${timerKey}`]);
+                                    window[`__timer_${timerKey}`] = null;
+                                    delete window[`__timer_${timerKey}`];
+                                }
+                                
+                                // Ensure executing class is removed
+                                lineContainer.classList.remove('executing');
+                                
+                                const startNs = typeof blockData.start_time === 'string' 
+                                    ? parseInt(blockData.start_time, 10) 
+                                    : Number(blockData.start_time);
+                                const endNs = typeof blockData.end_time === 'string' 
+                                    ? parseInt(blockData.end_time, 10) 
+                                    : Number(blockData.end_time);
+                                const durationNs = endNs - startNs;
+                                const durationMs = durationNs / 1_000_000;
+                                const durationSeconds = Math.floor(durationMs / 1000);
+                                const timerText = `${durationSeconds}s`;
+                                
+                                lineTimer.textContent = ` (${timerText})`;
+                                
+                                if (hasError) {
+                                    lineContainer.classList.add('error');
+                                } else if (hasFeedback) {
+                                    lineContainer.classList.add('warning');
+                                } else {
+                                    lineContainer.classList.add('success');
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Process events in order: thinking -> commands -> feedback -> thinking -> commands
+                    currentAnswerIndex = -1;
+                    cycle.progress.forEach((prog, idx) => {
+                        if (prog.type === 'answer' && prog.data && prog.data.text) {
+                            currentAnswerIndex++;
+                            const { thinking, commands } = extractThinkingAndCommands(prog.data.text);
+                            
+                            // Create thinking item
+                            if (thinking) {
+                                const thinkingItem = document.createElement('div');
+                                thinkingItem.className = 'progress-item thinking';
+                                
+                                const thinkingHeader = document.createElement('div');
+                                thinkingHeader.className = 'progress-item-header';
+                                
+                                const thinkingMsg = document.createElement('span');
+                                thinkingMsg.textContent = 'Thinking';
+                                thinkingHeader.appendChild(thinkingMsg);
+                                
+                                const thinkingIcon = document.createElement('span');
+                                thinkingIcon.className = 'progress-item-icon collapsed';
+                                thinkingIcon.textContent = '▶';
+                                thinkingHeader.appendChild(thinkingIcon);
+                                
+                                const thinkingData = document.createElement('div');
+                                thinkingData.className = 'progress-item-data collapsed message-content';
+                                thinkingData.textContent = thinking;
+                                
+                                thinkingHeader.addEventListener('click', () => {
+                                    thinkingData.classList.toggle('collapsed');
+                                    thinkingIcon.classList.toggle('collapsed');
                                 });
                                 
-                                responseItem.appendChild(responseHeader);
-                                responseItem.appendChild(responseData);
-                                progressEvents.appendChild(responseItem);
+                                thinkingItem.appendChild(thinkingHeader);
+                                thinkingItem.appendChild(thinkingData);
+                                progressEvents.appendChild(thinkingItem);
+                            }
+                            
+                            // Create commands item (gray - not executed yet)
+                            if (commands) {
+                                const commandsItem = document.createElement('div');
+                                commandsItem.className = 'progress-item commands';
+                                
+                                const commandsHeader = document.createElement('div');
+                                commandsHeader.className = 'progress-item-header';
+                                
+                                const commandsMsg = document.createElement('span');
+                                commandsMsg.textContent = 'Commands';
+                                commandsHeader.appendChild(commandsMsg);
+                                
+                                const commandsIcon = document.createElement('span');
+                                commandsIcon.className = 'progress-item-icon';
+                                commandsIcon.textContent = '▼';
+                                commandsHeader.appendChild(commandsIcon);
+                                
+                                const commandsData = document.createElement('div');
+                                commandsData.className = 'progress-item-data code-content';
+                                
+                                // Split commands into lines and create span for each
+                                const commandsLines = commands.split('\n');
+                                commandsLines.forEach((line, lineIdx) => {
+                                    const lineContainer = document.createElement('div');
+                                    lineContainer.className = 'command-line';
+                                    lineContainer.dataset.lineIndex = lineIdx;
+                                    
+                                    const lineText = document.createElement('span');
+                                    lineText.className = 'command-line-text';
+                                    lineText.textContent = line;
+                                    
+                                    const lineTimer = document.createElement('span');
+                                    lineTimer.className = 'command-line-timer';
+                                    
+                                    lineContainer.appendChild(lineText);
+                                    lineContainer.appendChild(lineTimer);
+                                    commandsData.appendChild(lineContainer);
+                                });
+                                
+                                commandsHeader.addEventListener('click', () => {
+                                    commandsData.classList.toggle('collapsed');
+                                    commandsIcon.classList.toggle('collapsed');
+                                });
+                                
+                                commandsItem.appendChild(commandsHeader);
+                                commandsItem.appendChild(commandsData);
+                                progressEvents.appendChild(commandsItem);
+                                
+                                // Store for later updates
+                                commandsItemsMap.set(currentAnswerIndex, {
+                                    element: commandsItem,
+                                    text: commands,
+                                    lines: commandsLines
+                                });
+                                
+                                // Process execute events for this answer
+                                const executeEvents = executeEventsByAnswer.get(currentAnswerIndex) || [];
+                                executeEvents.forEach(({ prog: executeProg }) => {
+                                    const blockData = executeProg.data;
+                                    const processedCode = blockData.processed_code || blockData.generated_code || '';
+                                    
+                                    if (processedCode) {
+                                        updateCommandLine(commandsItem, commands, commandsLines, blockData, processedCode, cycleIndex);
+                                    }
+                                    
+                                    // Create feedback item right after commands if present
+                                    if (blockData.feedback) {
+                                        const feedbackItem = document.createElement('div');
+                                        feedbackItem.className = 'progress-item feedback';
+                                        
+                                        const feedbackHeader = document.createElement('div');
+                                        feedbackHeader.className = 'progress-item-header';
+                                        
+                                        const feedbackMsg = document.createElement('span');
+                                        const feedbackType = blockData.feedback.type || 'Feedback';
+                                        const severity = blockData.feedback.severity || 'info';
+                                        feedbackMsg.textContent = `Feedback (${severity}): ${feedbackType}`;
+                                        feedbackHeader.appendChild(feedbackMsg);
+                                        
+                                        const feedbackIcon = document.createElement('span');
+                                        feedbackIcon.className = 'progress-item-icon collapsed';
+                                        feedbackIcon.textContent = '▶';
+                                        feedbackHeader.appendChild(feedbackIcon);
+                                        
+                                        const feedbackData = document.createElement('div');
+                                        feedbackData.className = 'progress-item-data collapsed message-content';
+                                        
+                                        // Show feedback text if available
+                                        if (blockData.feedback.text) {
+                                            feedbackData.textContent = blockData.feedback.text;
+                                        } else {
+                                            feedbackData.textContent = '(No feedback text)';
+                                            feedbackData.style.fontStyle = 'italic';
+                                            feedbackData.style.color = '#999';
+                                        }
+                                        
+                                        // Show feedback details if available
+                                        if (blockData.feedback.details && Object.keys(blockData.feedback.details).length > 0) {
+                                            const detailsDiv = document.createElement('div');
+                                            detailsDiv.style.marginTop = '8px';
+                                            detailsDiv.style.padding = '8px';
+                                            detailsDiv.style.background = '#f8f9fa';
+                                            detailsDiv.style.borderRadius = '4px';
+                                            detailsDiv.style.fontSize = '11px';
+                                            detailsDiv.style.fontFamily = "'Courier New', monospace";
+                                            
+                                            const detailsHeader = document.createElement('div');
+                                            detailsHeader.style.fontWeight = '600';
+                                            detailsHeader.style.marginBottom = '4px';
+                                            detailsHeader.textContent = 'Details:';
+                                            detailsDiv.appendChild(detailsHeader);
+                                            
+                                            const detailsContent = document.createElement('div');
+                                            detailsContent.style.whiteSpace = 'pre-wrap';
+                                            try {
+                                                detailsContent.textContent = JSON.stringify(blockData.feedback.details, null, 2);
+                                            } catch (e) {
+                                                detailsContent.textContent = String(blockData.feedback.details);
+                                            }
+                                            detailsDiv.appendChild(detailsContent);
+                                            
+                                            feedbackData.appendChild(detailsDiv);
+                                        }
+                                        
+                                        // Show function if available
+                                        if (blockData.feedback.function) {
+                                            const funcDiv = document.createElement('div');
+                                            funcDiv.style.marginTop = '8px';
+                                            funcDiv.style.fontSize = '11px';
+                                            funcDiv.style.color = '#666';
+                                            funcDiv.textContent = `Function: ${blockData.feedback.function}`;
+                                            feedbackData.appendChild(funcDiv);
+                                        }
+                                        
+                                        feedbackHeader.addEventListener('click', () => {
+                                            feedbackData.classList.toggle('collapsed');
+                                            feedbackIcon.classList.toggle('collapsed');
+                                        });
+                                        
+                                        feedbackItem.appendChild(feedbackHeader);
+                                        feedbackItem.appendChild(feedbackData);
+                                        progressEvents.appendChild(feedbackItem);
+                                    }
+                                });
                             }
                         }
                     });
@@ -2706,6 +2877,21 @@
                     progressContainer.appendChild(progressHeader);
                     progressContainer.appendChild(progressEvents);
                     cycleDiv.appendChild(progressContainer);
+                } else if (isGenerating && !state.config.showProgress) {
+                    // Show loading placeholder when progress is hidden
+                    const loadingPlaceholder = document.createElement('div');
+                    loadingPlaceholder.className = 'loading-placeholder';
+                    
+                    const loadingSpinner = document.createElement('div');
+                    loadingSpinner.className = 'loading-spinner';
+                    
+                    const loadingText = document.createElement('span');
+                    loadingText.className = 'loading-text';
+                    loadingText.textContent = 'Generating response...';
+                    
+                    loadingPlaceholder.appendChild(loadingSpinner);
+                    loadingPlaceholder.appendChild(loadingText);
+                    cycleDiv.appendChild(loadingPlaceholder);
                 }
 
                 // Response message with attachments
@@ -2804,6 +2990,7 @@
                     max_prompt_cycles: state.config.maxPromptCycles,
                     max_llm_exchanges: state.config.maxLlmExchanges,
                 },
+                interactive: state.config.enableInteraction,
                 message: {
                     text,
                     attachments: attachments,
@@ -2989,9 +3176,17 @@
             state.config.llmModel = document.getElementById('llmModel').value;
             state.config.maxPromptCycles = parseInt(document.getElementById('maxPromptCycles').value);
             state.config.maxLlmExchanges = parseInt(document.getElementById('maxLlmExchanges').value);
+            state.config.showProgress = document.getElementById('showProgress').checked;
+            state.config.enableInteraction = document.getElementById('enableInteraction').checked;
             
             // Save to localStorage
             localStorage.setItem('mic2e-demo-config', JSON.stringify(state.config));
+            
+            // Update interaction features based on setting
+            updateInteractionFeatures();
+            
+            // Re-render chat if progress visibility changed
+            renderChat();
         }
 
         function loadConfigFromStorage() {
@@ -3007,6 +3202,11 @@
                     document.getElementById('llmModel').value = config.llmModel || 'gemini-2.0-flash-exp';
                     document.getElementById('maxPromptCycles').value = config.maxPromptCycles || 5;
                     document.getElementById('maxLlmExchanges').value = config.maxLlmExchanges || 2;
+                    document.getElementById('showProgress').checked = config.showProgress !== undefined ? config.showProgress : true;
+                    document.getElementById('enableInteraction').checked = config.enableInteraction !== undefined ? config.enableInteraction : true;
+                    
+                    // Update interaction features based on loaded setting
+                    updateInteractionFeatures();
                 } catch (e) {
                     console.error('Failed to load config from storage:', e);
                 }
@@ -3031,6 +3231,8 @@
             document.getElementById('llmModel').addEventListener('input', loadConfigFromForm);
             document.getElementById('maxPromptCycles').addEventListener('input', loadConfigFromForm);
             document.getElementById('maxLlmExchanges').addEventListener('input', loadConfigFromForm);
+            document.getElementById('showProgress').addEventListener('change', loadConfigFromForm);
+            document.getElementById('enableInteraction').addEventListener('change', loadConfigFromForm);
             
             // Update model placeholder based on provider
             document.getElementById('llmProvider').addEventListener('change', (e) => {

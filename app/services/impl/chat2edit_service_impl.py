@@ -26,7 +26,6 @@ class Chat2EditServiceImpl(Chat2EditService):
     """Standalone service implementation - no storage backend needed."""
     
     def __init__(self):
-        self._context_provider = Mic2eContextProvider()
         self._context_strategy = Mic2eContextStrategy()
         self._prompting_strategy = Mic2ePromptingStrategy()
 
@@ -34,10 +33,13 @@ class Chat2EditServiceImpl(Chat2EditService):
         self, request: Chat2EditGenerateRequestModel
     ) -> Chat2EditGenerateResponseModel:
         """Generate a Chat2Edit response without progress tracking."""
+        
+        # Create context provider with interactive setting
+        context_provider = Mic2eContextProvider(interactive=request.interactive)
 
         chat2edit = Chat2Edit(
             llm=self._create_llm(request.llm_config),
-            context_provider=self._context_provider,
+            context_provider=context_provider,
             context_strategy=self._context_strategy,
             prompting_strategy=self._prompting_strategy,
             config=request.chat2edit_config,
@@ -73,9 +75,12 @@ class Chat2EditServiceImpl(Chat2EditService):
             # Create callbacks that enqueue progress events
             callbacks = self._create_streaming_callbacks(progress_queue)
             
+            # Create context provider with interactive setting
+            context_provider = Mic2eContextProvider(interactive=request.interactive)
+            
             chat2edit = Chat2Edit(
                 llm=self._create_llm(request.llm_config),
-                context_provider=self._context_provider,
+                context_provider=context_provider,
                 context_strategy=self._context_strategy,
                 prompting_strategy=self._prompting_strategy,
                 config=request.chat2edit_config,
@@ -197,20 +202,18 @@ class Chat2EditServiceImpl(Chat2EditService):
                 print(f"Error enqueueing {event_type} progress: {e}")
 
         def on_request(message: Message) -> None:
-            _enqueue_progress("request", message="Sending request to LLM...", data=message.model_dump())
+            _enqueue_progress("request", message="Request created", data=message.model_dump())
 
         def on_prompt(message: Message) -> None:
-            _enqueue_progress("prompt", message="Generating prompt...", data=message.model_dump())
+            _enqueue_progress("prompt", message="Prompt created", data=message.model_dump())
 
         def on_answer(message: Message) -> None:
-            _enqueue_progress("answer", message="Received answer from LLM...", data=message.model_dump())
+            _enqueue_progress("answer", message="Answer received", data=message.model_dump())
 
         def on_extract(code: str) -> None:
-            _enqueue_progress("extract", message="Extracting code...", data=code)
+            _enqueue_progress("extract", message="Code extracted", data=code)
 
-        def on_execute(block: ExecutionBlock) -> None:
-            block_type = getattr(block, 'type', None) or getattr(block, 'block_type', None) or str(type(block).__name__)
-            
+        def on_execute(block: ExecutionBlock) -> None:            
             # Safely serialize execution block to prevent recursion errors
             try:
                 block_data = block.model_dump(mode="json")
@@ -224,7 +227,7 @@ class Chat2EditServiceImpl(Chat2EditService):
                     "serialization_error": str(e)
                 }
             
-            _enqueue_progress("execute", message=f"Executing: {block_type}", data=block_data)
+            _enqueue_progress("execute", message=f"Block executed", data=block_data)
 
         return Chat2EditCallbacks(
             on_request=on_request,

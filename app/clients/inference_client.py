@@ -240,5 +240,33 @@ class InferenceClient:
         result_bytes = BytesIO(response.content)
         return Image.open(result_bytes).convert("RGB")
 
+    async def aesthetic_regressor_score(
+        self, image: Image.Image
+    ) -> dict:
+        """
+        Score an image for aesthetic factors using Aesthetic Regressor.
+
+        Args:
+            image: Input image to score
+
+        Returns:
+            Dictionary with aesthetic factor scores (saturation, brightness, tint, temperature, contrast)
+        """
+        url = f"{self._api_url}/aesthetic-regressor/score"
+
+        # Convert image to bytes
+        image_bytes = BytesIO()
+        image.save(image_bytes, format="PNG")
+        image_bytes.seek(0)
+
+        # Prepare form data
+        files = {"image": ("image.png", image_bytes, "image/png")}
+
+        response = await self._client.post(url, files=files)
+        response.raise_for_status()
+
+        # Parse JSON response
+        return response.json()
+
 
 inference_client = InferenceClient(INFERENCE_API_URL)

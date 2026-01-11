@@ -42,6 +42,7 @@ class Chat2EditGenerateRequestModel(BaseModel):
     message: MessageModel
     history: List[ChatCycle] = Field(default=[])
     context: Optional[Dict[str, Any]] = Field(default=None)  # Inline context, no file ID
+    interactive: bool = Field(default=True)  # Enable interaction features (point, box, scribble)
 
 
 class Chat2EditGenerateResponseModel(BaseModel):
