@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -94,7 +95,7 @@
 
         .canvas-wrapper {
             position: relative;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             background: white;
         }
 
@@ -154,7 +155,7 @@
 
         .gallery-item.active {
             border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0,123,255,0.2);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
         }
 
         .gallery-item canvas {
@@ -205,7 +206,7 @@
                 flex-wrap: wrap;
                 padding: 10px 15px;
             }
-            
+
             .canvas-controls .btn {
                 font-size: 12px;
                 padding: 6px 12px;
@@ -363,6 +364,127 @@
             display: none;
         }
 
+        /* Debug Popup Modal */
+        .debug-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .debug-modal.visible {
+            display: flex;
+        }
+
+        .debug-modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .debug-modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .debug-modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .debug-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .debug-modal-close:hover {
+            background: #f0f0f0;
+        }
+
+        .debug-modal-body {
+            flex: 1;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        .debug-modal-actions {
+            padding: 12px 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .debug-modal-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .debug-modal-btn:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        .debug-modal-btn.primary {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .debug-modal-btn.primary:hover {
+            background: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .debug-json-content {
+            font-family: 'Courier New', 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-x: auto;
+            max-height: 60vh;
+            overflow-y: auto;
+            color: #333;
+            line-height: 1.5;
+        }
+
         .config-panel {
             padding: 12px;
             background: white;
@@ -370,7 +492,7 @@
             border-radius: 6px;
             margin-bottom: 12px;
             display: none;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .config-panel.visible {
@@ -382,8 +504,9 @@
                 padding: 10px;
                 font-size: 12px;
             }
-            
-            .config-input, .config-select {
+
+            .config-input,
+            .config-select {
                 font-size: 12px;
                 padding: 5px 8px;
             }
@@ -648,23 +771,28 @@
 
         /* Command execution states */
         .progress-item.commands {
-            border-left-color: #6c757d; /* Gray - not executed */
+            border-left-color: #6c757d;
+            /* Gray - not executed */
         }
 
         .progress-item.commands.executing {
-            border-left-color: #007bff; /* Blue - executing */
+            border-left-color: #007bff;
+            /* Blue - executing */
         }
 
         .progress-item.commands.success {
-            border-left-color: #28a745; /* Green - success */
+            border-left-color: #28a745;
+            /* Green - success */
         }
 
         .progress-item.commands.warning {
-            border-left-color: #ffc107; /* Yellow - feedback */
+            border-left-color: #ffc107;
+            /* Yellow - feedback */
         }
 
         .progress-item.commands.error {
-            border-left-color: #dc3545; /* Red - error */
+            border-left-color: #dc3545;
+            /* Red - error */
         }
 
         /* Command line highlighting within commands block */
@@ -792,7 +920,7 @@
         .attachment-item:hover {
             border-color: #007bff;
             transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
         }
 
         .attachment-item canvas {
@@ -893,8 +1021,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .empty-state {
@@ -931,9 +1064,9 @@
         #imageInput {
             display: none;
         }
-
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Canvas Section -->
@@ -956,9 +1089,9 @@
                     📁 Upload Image(s)
                 </label>
                 <input type="file" id="imageInput" accept="image/*" multiple>
-                <                <button class="btn" id="clearBtn" disabled>Clear Annotations</button>
-                <button class="btn" id="undoBtn" disabled>Undo</button>
-                <button class="btn" id="clearAllBtn" disabled>Clear All Images</button>
+                < <button class="btn" id="clearBtn" disabled>Clear Annotations</button>
+                    <button class="btn" id="undoBtn" disabled>Undo</button>
+                    <button class="btn" id="clearAllBtn" disabled>Clear All Images</button>
             </div>
         </div>
 
@@ -978,13 +1111,14 @@
             <div class="chat-messages" id="chatMessages">
                 <div class="empty-state">
                     <p>Start chatting with the AI!<br><br>
-                    <strong>Optional:</strong> Upload an image and draw annotations<br><br>
-                    <strong>Canvas Tips:</strong><br>
-                    • Single click: Add a point<br>
-                    • Double click: Select entire image<br>
-                    • Click and drag: Draw scribble or box<br>
-                    • Click then drag: Create box<br><br>
-                    <em>Note: Chat history clears on page reload</em></p>
+                        <strong>Optional:</strong> Upload an image and draw annotations<br><br>
+                        <strong>Canvas Tips:</strong><br>
+                        • Single click: Add a point<br>
+                        • Double click: Select entire image<br>
+                        • Click and drag: Draw scribble or box<br>
+                        • Click then drag: Create box<br><br>
+                        <em>Note: Chat history clears on page reload</em>
+                    </p>
                 </div>
             </div>
             <div class="chat-input-container">
@@ -996,43 +1130,45 @@
                             <option value="openai">OpenAI</option>
                         </select>
                     </div>
-                    
+
                     <div class="config-group">
                         <label class="config-label">API Key (optional - uses .env if empty)</label>
-                        <input type="password" class="config-input" id="apiKey" placeholder="Leave empty to use server's .env">
+                        <input type="password" class="config-input" id="apiKey"
+                            placeholder="Leave empty to use server's .env">
                     </div>
-                    
+
                     <div class="config-group">
                         <label class="config-label">Model</label>
-                        <input type="text" class="config-input" id="llmModel" value="gemini-2.0-flash-exp" placeholder="e.g., gemini-2.0-flash-exp">
+                        <input type="text" class="config-input" id="llmModel" value="gemini-2.0-flash-exp"
+                            placeholder="e.g., gemini-2.0-flash-exp">
                     </div>
-                    
+
                     <div class="config-row">
                         <div class="config-group">
                             <label class="config-label">Max Prompt Cycles</label>
                             <input type="number" class="config-input" id="maxPromptCycles" value="5" min="1" max="10">
                         </div>
-                        
+
                         <div class="config-group">
                             <label class="config-label">Max LLM Exchanges</label>
                             <input type="number" class="config-input" id="maxLlmExchanges" value="2" min="1" max="5">
                         </div>
                     </div>
-                    
+
                     <div class="config-group">
                         <label class="config-checkbox-label">
                             <input type="checkbox" class="config-checkbox" id="showProgress" checked>
                             <span>Show Progress (for debugging)</span>
                         </label>
                     </div>
-                    
+
                     <div class="config-group">
                         <label class="config-checkbox-label">
                             <input type="checkbox" class="config-checkbox" id="enableInteraction" checked>
                             <span>Enable Interaction (point, box, scribble annotations)</span>
                         </label>
                     </div>
-                    
+
                     <div class="session-controls">
                         <button class="session-btn" id="saveBtn" title="Save chat session to file" disabled>
                             <span>💾</span>
@@ -1042,10 +1178,14 @@
                             <span>📁</span>
                             <span>Load</span>
                         </label>
+                        <button class="session-btn" id="debugCyclesBtn" title="Show chat cycles for debugging">
+                            <span>🐛</span>
+                            <span>Debug Cycles</span>
+                        </button>
                         <input type="file" id="loadFileInput" accept=".json">
                     </div>
                 </div>
-                
+
                 <div class="chat-input-wrapper">
                     <button class="input-config-btn" id="toggleConfig" title="Settings">⚙️</button>
                     <div id="messageInput" contenteditable="true" data-placeholder="Type your message..."></div>
@@ -1055,10 +1195,27 @@
         </div>
     </div>
 
+    <!-- Debug Cycles Modal -->
+    <div class="debug-modal" id="debugModal">
+        <div class="debug-modal-content">
+            <div class="debug-modal-header">
+                <h2>Chat Cycles (Debug)</h2>
+                <button class="debug-modal-close" id="debugModalClose">×</button>
+            </div>
+            <div class="debug-modal-body">
+                <pre class="debug-json-content" id="debugCyclesContent">No cycles available</pre>
+            </div>
+            <div class="debug-modal-actions">
+                <button class="debug-modal-btn" id="debugCopyBtn">Copy to Clipboard</button>
+                <button class="debug-modal-btn primary" id="debugCloseBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         // Import fabric from CDN
         const { Canvas, FabricImage, Group, Circle, Rect, Path, Point } = fabric;
-        
+
         // Standalone mode - no external services needed
         // Support basepath for reverse proxy (e.g., /chat2edit)
         // Dynamically detect basepath from current location
@@ -1079,7 +1236,7 @@
             context: null,
             isGenerating: false,
             editingCycleIndex: null,  // Index of cycle being edited, null if not editing
-            
+
             // Drawing state
             isArmedDraw: false,
             mouseDownPoint: null,
@@ -1091,10 +1248,10 @@
             clickTimer: null,
             lastClickTime: 0,
             pendingArmPoint: null,
-            
+
             // Reference tracking for mentions
             references: [],  // { value, label, color, objectId }
-            
+
             // Configuration
             config: {
                 llmProvider: 'google',
@@ -1136,7 +1293,7 @@
 
             const objectId = generateId();
             const referenceValue = generateId();
-            
+
             const circle = new Circle({
                 id: objectId,
                 left: figCoords.x,
@@ -1153,12 +1310,12 @@
             });
             fig.add(circle);
             canvas.requestRenderAll();
-            
+
             // Only add reference/mention if requested (not for preview)
             if (addMention) {
                 addReference(referenceValue, 'point', color, objectId);
             }
-            
+
             return circle;
         }
 
@@ -1175,7 +1332,7 @@
 
             const objectId = generateId();
             const referenceValue = generateId();
-            
+
             const rect = new Rect({
                 id: objectId,
                 left,
@@ -1193,7 +1350,7 @@
             });
             fig.add(rect);
             canvas.requestRenderAll();
-            
+
             return { rect, referenceValue, objectId };
         }
 
@@ -1215,7 +1372,7 @@
             const zoom = canvas.getZoom();
             const objectId = generateId();
             const referenceValue = generateId();
-            
+
             const path = new Path(pathString, {
                 id: objectId,
                 stroke: color,
@@ -1231,7 +1388,7 @@
             });
             fig.add(path);
             canvas.requestRenderAll();
-            
+
             return { path, referenceValue, objectId };
         }
 
@@ -1244,7 +1401,7 @@
             const height = image.getScaledHeight() - strokeWidth;
 
             const referenceValue = generateId();
-            
+
             const rect = new Rect({
                 id: fig.id,
                 left: 0,
@@ -1270,12 +1427,12 @@
             }
             fig.set({ color, reference: { value: referenceValue, label: 'image' } });
             canvas.requestRenderAll();
-            
+
             // Only add reference/mention if requested
             if (addMention) {
                 addReference(referenceValue, 'image', color, fig.id);
             }
-            
+
             return fig;
         }
 
@@ -1284,7 +1441,7 @@
             const figObjects = fig.getObjects();
             if (figObjects.length > 1 && figObjects[1]?.id === fig.id) {
                 const frame = figObjects[1];
-                
+
                 // Remove reference if it exists
                 if (frame.reference) {
                     removeReferenceByValue(frame.reference.value);
@@ -1293,7 +1450,7 @@
                     removeReferenceByValue(fig.reference.value);
                     delete fig.reference;
                 }
-                
+
                 fig.remove(frame);
                 canvas.requestRenderAll();
             }
@@ -1329,15 +1486,15 @@
         function insertMention(value, label, color) {
             const input = document.getElementById('messageInput');
             const colorCode = color.startsWith('#') ? color.slice(1) : color;
-            
+
             // Check if we need a space before the mention
             const lastChild = input.lastChild;
             const needsSpace = lastChild && lastChild.textContent && !lastChild.textContent.endsWith(' ');
-            
+
             if (needsSpace) {
                 input.appendChild(document.createTextNode(' '));
             }
-            
+
             // Create mention element
             const mention = document.createElement('span');
             mention.className = 'mention';
@@ -1348,10 +1505,10 @@
             mention.style.backgroundColor = `${color}20`;
             mention.style.color = color;
             mention.textContent = `@${label}`;
-            
+
             input.appendChild(mention);
             input.appendChild(document.createTextNode(' '));
-            
+
             // Move cursor to end
             const range = document.createRange();
             const sel = window.getSelection();
@@ -1359,13 +1516,13 @@
             range.collapse(false);
             sel.removeAllRanges();
             sel.addRange(range);
-            
+
             input.focus();
         }
 
         function updateMessageInput() {
             const input = document.getElementById('messageInput');
-            
+
             // Remove mention elements that are no longer in references
             const mentionElements = input.querySelectorAll('.mention');
             mentionElements.forEach(mention => {
@@ -1380,7 +1537,7 @@
         function getMessageText() {
             const input = document.getElementById('messageInput');
             let text = '';
-            
+
             input.childNodes.forEach(node => {
                 if (node.nodeType === Node.TEXT_NODE) {
                     text += node.textContent;
@@ -1391,14 +1548,14 @@
                     text += `#${colorCode}[${label}](${value})`;
                 }
             });
-            
+
             return text;
         }
 
         function parseMentionsFromInput() {
             const input = document.getElementById('messageInput');
             const mentions = [];
-            
+
             input.querySelectorAll('.mention').forEach(mention => {
                 mentions.push({
                     color: '#' + mention.getAttribute('data-color'),
@@ -1406,17 +1563,17 @@
                     value: mention.getAttribute('data-value')
                 });
             });
-            
+
             return mentions;
         }
 
         // Watch for manual text changes to sync annotations
         function setupMessageInputWatcher() {
             const input = document.getElementById('messageInput');
-            
+
             // Track mentions before any change
             let mentionsBefore = [];
-            
+
             // Capture mentions before any modification
             const captureMentionsBefore = () => {
                 mentionsBefore = Array.from(input.querySelectorAll('.mention')).map(m => ({
@@ -1424,13 +1581,13 @@
                     value: m.getAttribute('data-value')
                 }));
             };
-            
+
             // Check for removed mentions after modification
             const checkRemovedMentions = () => {
                 const mentionsAfter = new Set(
                     Array.from(input.querySelectorAll('.mention')).map(m => m.getAttribute('data-value'))
                 );
-                
+
                 // Find mentions that were removed
                 mentionsBefore.forEach(({ value }) => {
                     if (!mentionsAfter.has(value)) {
@@ -1438,28 +1595,28 @@
                         removeAnnotationByReference(value);
                     }
                 });
-                
+
                 // Update send button state
                 updateSendButtonState();
             };
-            
+
             // Handle all input changes (delete, backspace, cut, etc.)
             input.addEventListener('beforeinput', (e) => {
                 captureMentionsBefore();
-                
+
                 // If deleting/cutting a selection that contains mentions
-                if (e.inputType === 'deleteContentBackward' || 
+                if (e.inputType === 'deleteContentBackward' ||
                     e.inputType === 'deleteContentForward' ||
                     e.inputType === 'deleteByCut') {
-                    
+
                     const selection = window.getSelection();
                     if (selection.rangeCount > 0) {
                         const range = selection.getRangeAt(0);
-                        
+
                         // Check if selection contains any mentions
                         const container = range.commonAncestorContainer;
                         let parent = container.nodeType === Node.TEXT_NODE ? container.parentNode : container;
-                        
+
                         // If we're inside or selecting a mention
                         if (parent.classList && parent.classList.contains('mention')) {
                             // Will be handled by checkRemovedMentions
@@ -1468,7 +1625,7 @@
                             const tempDiv = document.createElement('div');
                             tempDiv.appendChild(range.cloneContents());
                             const mentionsInSelection = tempDiv.querySelectorAll('.mention');
-                            
+
                             if (mentionsInSelection.length > 0) {
                                 // Will be handled by checkRemovedMentions
                             }
@@ -1476,13 +1633,13 @@
                     }
                 }
             });
-            
+
             // Check after any change
             input.addEventListener('input', () => {
                 checkRemovedMentions();
                 updateSendButtonState();
             });
-            
+
             // Handle backspace/delete on mentions (direct deletion)
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -1490,7 +1647,7 @@
                     if (selection.rangeCount > 0) {
                         const range = selection.getRangeAt(0);
                         const node = range.startContainer;
-                        
+
                         // Check if we're inside a mention
                         if (node.parentElement && node.parentElement.classList.contains('mention')) {
                             e.preventDefault();
@@ -1501,7 +1658,7 @@
                             removeAnnotationByReference(value);
                             return;
                         }
-                        
+
                         // Check if cursor is right before a mention (backspace)
                         if (e.key === 'Backspace' && range.startOffset === 0 && node.previousSibling?.classList?.contains('mention')) {
                             e.preventDefault();
@@ -1512,7 +1669,7 @@
                             removeAnnotationByReference(value);
                             return;
                         }
-                        
+
                         // Check if cursor is right after a mention (delete)
                         if (e.key === 'Delete' && node.nextSibling?.classList?.contains('mention')) {
                             e.preventDefault();
@@ -1525,7 +1682,7 @@
                         }
                     }
                 }
-                
+
                 // Prevent editing inside mentions
                 const selection = window.getSelection();
                 if (selection.rangeCount > 0) {
@@ -1537,7 +1694,7 @@
                     }
                 }
             });
-            
+
             // Handle Enter key
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -1549,25 +1706,25 @@
 
         function removeAnnotationByReference(referenceValue) {
             if (!state.fabricCanvas) return;
-            
+
             const fig = state.fabricCanvas.getObjects()[0];
             if (!fig) return;
-            
+
             const objects = fig.getObjects();
-            const objToRemove = objects.find(obj => 
-                obj.reference?.value === referenceValue || 
+            const objToRemove = objects.find(obj =>
+                obj.reference?.value === referenceValue ||
                 (obj.id === fig.id && fig.reference?.value === referenceValue)
             );
-            
+
             if (objToRemove) {
                 if (objToRemove.id === fig.id) {
-                                // It's an image selection
+                    // It's an image selection
                     fig.remove(objToRemove);
                     delete fig.reference;
                 } else {
                     fig.remove(objToRemove);
                 }
-                
+
                 state.fabricCanvas.requestRenderAll();
                 saveFigFile();
             }
@@ -1697,7 +1854,7 @@
                         });
                         fig.add(state.tempObject);
                     }
-                    
+
                     // Render the preview
                     canvas.requestRenderAll();
                 }
@@ -1753,7 +1910,7 @@
                         // Double click detected - disarm and toggle image selection
                         state.isArmedDraw = false;
                         state.pendingArmPoint = null;
-                        
+
                         if (hasFigFrame(canvas)) {
                             removeFigFrame(canvas);
                         } else {
@@ -1824,13 +1981,13 @@
             state.currentImage = file;
             const figObject = await createFigObjectFromImageFile(file);
             state.currentFigObject = figObject;
-            
+
             // Add to uploaded images list if not already there
             const existingIndex = state.uploadedFigObjects.findIndex(obj => obj.id === figObject.id);
             if (existingIndex === -1) {
                 state.uploadedFigObjects.push(figObject);
             }
-            
+
             await loadFigObject(figObject);
             saveFigFile();
             updateNextColor();
@@ -1838,7 +1995,7 @@
             updateImageCount();
             await renderGallery();
         }
-        
+
         function updateImageCount() {
             const count = state.uploadedFigObjects.length;
             const label = document.querySelector('.file-input-label');
@@ -1852,36 +2009,36 @@
         async function renderGallery() {
             const gallery = document.getElementById('canvasGallery');
             const galleryItems = document.getElementById('galleryItems');
-            
+
             if (state.uploadedFigObjects.length === 0) {
                 gallery.style.display = 'none';
                 return;
             }
-            
+
             gallery.style.display = 'block';
             galleryItems.innerHTML = '';
-            
+
             for (let i = 0; i < state.uploadedFigObjects.length; i++) {
                 const figObj = state.uploadedFigObjects[i];
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'gallery-item';
                 itemDiv.title = `Image ${i + 1} - Click to edit`;
-                
+
                 // Mark as active if this is the current image
                 if (state.currentFigObject && figObj.id === state.currentFigObject.id) {
                     itemDiv.classList.add('active');
                 }
-                
+
                 // Create thumbnail canvas
                 const thumbnailCanvas = document.createElement('canvas');
                 thumbnailCanvas.width = 100;
                 thumbnailCanvas.height = 100;
-                
+
                 try {
                     const fig = await Group.fromObject(figObj);
                     const tempCanvas = new fabric.StaticCanvas(thumbnailCanvas);
                     tempCanvas.add(fig);
-                    
+
                     const figObjects = fig.getObjects();
                     if (figObjects.length > 0) {
                         const image = figObjects[0];
@@ -1891,19 +2048,19 @@
                         tempCanvas.setDimensions({ width: imgWidth * zoom, height: imgHeight * zoom });
                         tempCanvas.setZoom(zoom);
                     }
-                    
+
                     tempCanvas.renderAll();
                 } catch (e) {
                     console.error('Failed to render gallery thumbnail:', e);
                 }
-                
+
                 // Click to load into editor
                 itemDiv.addEventListener('click', async (e) => {
                     if (!e.target.classList.contains('gallery-item-remove')) {
                         await switchToImage(i);
                     }
                 });
-                
+
                 // Remove button
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'gallery-item-remove';
@@ -1913,7 +2070,7 @@
                     e.stopPropagation();
                     await removeImage(i);
                 });
-                
+
                 itemDiv.appendChild(thumbnailCanvas);
                 itemDiv.appendChild(removeBtn);
                 galleryItems.appendChild(itemDiv);
@@ -1922,7 +2079,7 @@
 
         async function switchToImage(index) {
             if (index < 0 || index >= state.uploadedFigObjects.length) return;
-            
+
             const figObj = state.uploadedFigObjects[index];
             state.currentFigObject = figObj;
             await loadFigObject(figObj);
@@ -1932,10 +2089,10 @@
 
         async function removeImage(index) {
             if (index < 0 || index >= state.uploadedFigObjects.length) return;
-            
+
             const removedFigObj = state.uploadedFigObjects[index];
             state.uploadedFigObjects.splice(index, 1);
-            
+
             // If we removed the current image, switch to another one
             if (state.currentFigObject && removedFigObj.id === state.currentFigObject.id) {
                 if (state.uploadedFigObjects.length > 0) {
@@ -1948,7 +2105,7 @@
                     updateSendButtonState();  // Update send button state based on text input
                 }
             }
-            
+
             updateImageCount();
             await renderGallery();
         }
@@ -1979,11 +2136,11 @@
             const image = figObjects[0];
             const imageWidth = image.getScaledWidth();
             const imageHeight = image.getScaledHeight();
-            
+
             const maxWidth = 800;
             const maxHeight = 600;
             const zoom = Math.min(maxWidth / imageWidth, maxHeight / imageHeight);
-            
+
             canvas.setDimensions({
                 width: imageWidth * zoom,
                 height: imageHeight * zoom,
@@ -1996,16 +2153,16 @@
             if (!state.fabricCanvas) return;
             const fig = state.fabricCanvas.getObjects()[0];
             if (!fig) return;
-            
+
             const newFigObject = fig.toObject(['id', 'selectable', 'evented', 'hoverCursor', 'color', 'ephemeral', 'reference']);
             state.currentFigObject = newFigObject;
-            
+
             // Update in uploadedFigObjects array
             const index = state.uploadedFigObjects.findIndex(obj => obj.id === newFigObject.id);
             if (index !== -1) {
                 state.uploadedFigObjects[index] = newFigObject;
             }
-            
+
             const figJson = JSON.stringify(newFigObject);
             const blob = new Blob([figJson], { type: 'application/json' });
             state.currentFigFile = new File([blob], `${generateId()}.fig.json`, { type: 'application/json' });
@@ -2015,11 +2172,11 @@
             if (!state.fabricCanvas) return;
             const fig = state.fabricCanvas.getObjects()[0];
             if (!fig) return;
-            
+
             // Clear all references
             state.references = [];
             updateMessageInput();
-            
+
             const image = fig.getObjects()[0];
             fig.remove(...fig.getObjects());
             fig.add(image);
@@ -2031,17 +2188,17 @@
             if (!state.fabricCanvas) return;
             const fig = state.fabricCanvas.getObjects()[0];
             if (!fig) return;
-            
+
             const objects = fig.getObjects();
             if (objects.length > 1) {
                 // Check if last object is a frame
                 const lastObject = objects[objects.length - 1];
-                
+
                 // Remove reference if it exists
                 if (lastObject.reference) {
                     removeReferenceByValue(lastObject.reference.value);
                 }
-                
+
                 if (lastObject.id === fig.id) {
                     // It's an image selection, remove it and its reference
                     if (fig.reference) {
@@ -2096,10 +2253,10 @@
 
         function updateSessionButtonStates() {
             const hasCycles = state.cycles.length > 0;
-            
+
             // Disable Save if chat is empty
             document.getElementById('saveBtn').disabled = !hasCycles;
-            
+
             // Disable Load if there's a current chat
             const loadBtn = document.getElementById('loadBtn');
             if (hasCycles) {
@@ -2109,29 +2266,100 @@
             }
         }
 
+        // ===== Debug Cycles Modal Functions =====
+
+        function setupDebugModal() {
+            const modal = document.getElementById('debugModal');
+            const openBtn = document.getElementById('debugCyclesBtn');
+            const closeBtn = document.getElementById('debugModalClose');
+            const closeActionBtn = document.getElementById('debugCloseBtn');
+            const copyBtn = document.getElementById('debugCopyBtn');
+            const content = document.getElementById('debugCyclesContent');
+
+            function openModal() {
+                // Format cycles as JSON
+                const cyclesData = {
+                    cycles: state.cycles,
+                    context: state.context,
+                    totalCycles: state.cycles.length
+                };
+
+                try {
+                    const jsonString = JSON.stringify(cyclesData, null, 2);
+                    content.textContent = jsonString;
+                } catch (e) {
+                    content.textContent = `Error formatting cycles: ${e.message}\n\nRaw data:\n${JSON.stringify(state.cycles, null, 2)}`;
+                }
+
+                modal.classList.add('visible');
+            }
+
+            function closeModal() {
+                modal.classList.remove('visible');
+            }
+
+            function copyToClipboard() {
+                const text = content.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    // Show temporary feedback
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = 'Copied!';
+                    copyBtn.style.background = '#28a745';
+                    copyBtn.style.color = 'white';
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                        copyBtn.style.background = '';
+                        copyBtn.style.color = '';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    alert('Failed to copy to clipboard');
+                });
+            }
+
+            openBtn.addEventListener('click', openModal);
+            closeBtn.addEventListener('click', closeModal);
+            closeActionBtn.addEventListener('click', closeModal);
+            copyBtn.addEventListener('click', copyToClipboard);
+
+            // Close on background click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // Close on Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.classList.contains('visible')) {
+                    closeModal();
+                }
+            });
+        }
+
         // ===== Edit and Regenerate Functions =====
-        
+
         function restoreTextWithMentions(text) {
             // Parse text with mentions like: "Hello #FF0000[point](uuid) world"
             const input = document.getElementById('messageInput');
             input.innerHTML = '';
-            
+
             const mentionPattern = /#([0-9A-Fa-f]{6})\[([^\]]+)\]\(([^)]+)\)/g;
             let lastIndex = 0;
             let match;
-            
+
             while ((match = mentionPattern.exec(text)) !== null) {
                 // Add text before the mention
                 if (match.index > lastIndex) {
                     const textNode = document.createTextNode(text.substring(lastIndex, match.index));
                     input.appendChild(textNode);
                 }
-                
+
                 // Add mention
                 const colorCode = match[1];
                 const label = match[2];
                 const value = match[3];
-                
+
                 const mention = document.createElement('span');
                 mention.className = 'mention';
                 mention.contentEditable = 'false';
@@ -2141,18 +2369,18 @@
                 mention.style.backgroundColor = `#${colorCode}20`;
                 mention.style.color = `#${colorCode}`;
                 mention.textContent = `@${label}`;
-                
+
                 input.appendChild(mention);
-                
+
                 lastIndex = mentionPattern.lastIndex;
             }
-            
+
             // Add remaining text
             if (lastIndex < text.length) {
                 const textNode = document.createTextNode(text.substring(lastIndex));
                 input.appendChild(textNode);
             }
-            
+
             // Move cursor to end
             const range = document.createRange();
             const sel = window.getSelection();
@@ -2171,14 +2399,14 @@
                 await renderGallery();
                 return;
             }
-            
+
             // Restore all images from attachments
             state.uploadedFigObjects = attachments.map(att => {
                 // Clone the fig object to avoid reference issues
                 const figObj = JSON.parse(JSON.stringify(att.content));
                 return figObj;
             });
-            
+
             // Restore references from annotations in the images
             state.references = [];
             for (const figObj of state.uploadedFigObjects) {
@@ -2191,7 +2419,7 @@
                         objectId: figObj.id
                     });
                 }
-                
+
                 // Check for object-level references (annotations)
                 if (figObj.objects && Array.isArray(figObj.objects)) {
                     for (const obj of figObj.objects) {
@@ -2206,7 +2434,7 @@
                     }
                 }
             }
-            
+
             // Load the first image into the editor
             if (state.uploadedFigObjects.length > 0) {
                 state.currentFigObject = state.uploadedFigObjects[0];
@@ -2215,7 +2443,7 @@
                 state.currentFigObject = null;
                 state.fabricCanvas.clear();
             }
-            
+
             updateImageCount();
             await renderGallery();
         }
@@ -2223,23 +2451,23 @@
         async function editRequest(cycleIndex) {
             if (cycleIndex < 0 || cycleIndex >= state.cycles.length) return;
             if (state.isGenerating) return;  // Don't allow editing while generating
-            
+
             const cycle = state.cycles[cycleIndex];
             if (!cycle.request) return;
-            
+
             // Set editing mode - truncate cycles after this index when sending
             state.editingCycleIndex = cycleIndex;
-            
+
             // Restore message text with mentions
             if (cycle.request.text) {
                 restoreTextWithMentions(cycle.request.text);
             } else {
                 document.getElementById('messageInput').innerHTML = '';
             }
-            
+
             // Restore images and annotations
             await restoreImagesFromAttachments(cycle.request.attachments);
-            
+
             // Scroll to input
             document.getElementById('messageInput').focus();
             updateSendButtonState();
@@ -2248,23 +2476,23 @@
         async function regenerateResponse(cycleIndex) {
             if (cycleIndex < 0 || cycleIndex >= state.cycles.length) return;
             if (state.isGenerating) return;  // Don't allow regenerating while generating
-            
+
             const cycle = state.cycles[cycleIndex];
             if (!cycle.request) return;
-            
+
             // Set editing mode - truncate cycles after this index when sending
             state.editingCycleIndex = cycleIndex;
-            
+
             // Restore request message text with mentions
             if (cycle.request.text) {
                 restoreTextWithMentions(cycle.request.text);
             } else {
                 document.getElementById('messageInput').innerHTML = '';
             }
-            
+
             // Restore images and annotations from the request
             await restoreImagesFromAttachments(cycle.request.attachments);
-            
+
             // Immediately send to regenerate
             await sendMessage();
         }
@@ -2290,7 +2518,7 @@
                     const fig = await Group.fromObject(attachment.content);
                     const tempCanvas = new fabric.StaticCanvas(thumbnailCanvas);
                     tempCanvas.add(fig);
-                    
+
                     // Calculate zoom to fit
                     const figObjects = fig.getObjects();
                     if (figObjects.length > 0) {
@@ -2301,7 +2529,7 @@
                         tempCanvas.setDimensions({ width: imgWidth * zoom, height: imgHeight * zoom });
                         tempCanvas.setZoom(zoom);
                     }
-                    
+
                     tempCanvas.renderAll();
                 } catch (e) {
                     console.error('Failed to render thumbnail:', e);
@@ -2322,18 +2550,18 @@
         function renderMessageText(text) {
             const div = document.createElement('div');
             div.style.display = 'inline';
-            
+
             // Parse mentions in the text
             const mentionPattern = /#([0-9A-Fa-f]{6})\[([^\]]+)\]\(([^)]+)\)/g;
             let lastIndex = 0;
             let match;
-            
+
             while ((match = mentionPattern.exec(text)) !== null) {
                 // Add text before the mention
                 if (match.index > lastIndex) {
                     div.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
                 }
-                
+
                 // Create mention span
                 const [, colorCode, label] = match;
                 const mention = document.createElement('span');
@@ -2342,15 +2570,15 @@
                 mention.style.color = `#${colorCode}`;
                 mention.textContent = `@${label}`;
                 div.appendChild(mention);
-                
+
                 lastIndex = match.index + match[0].length;
             }
-            
+
             // Add remaining text
             if (lastIndex < text.length) {
                 div.appendChild(document.createTextNode(text.substring(lastIndex)));
             }
-            
+
             return div;
         }
 
@@ -2369,12 +2597,35 @@
             }
 
             const thinking = parts[parts.length - 2] || '';
-            
+
             // Extract code from ```python blocks
             const codeMatch = parts[parts.length - 1].match(/```python([\s\S]*?)```/);
             const commands = codeMatch ? codeMatch[1].trim() : '';
 
             return { thinking, commands };
+        }
+
+        // Helper function to extract error from cycle structure
+        function extractCycleError(cycle) {
+            // Check top-level error first
+            if (cycle.error) {
+                return cycle.error;
+            }
+            
+            // Check nested cycle structure for exchange errors
+            if (cycle.cycle && cycle.cycle.cycles && Array.isArray(cycle.cycle.cycles)) {
+                for (const subCycle of cycle.cycle.cycles) {
+                    if (subCycle.exchanges && Array.isArray(subCycle.exchanges)) {
+                        for (const exchange of subCycle.exchanges) {
+                            if (exchange.error && exchange.error.message) {
+                                return exchange.error.message;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return null;
         }
 
         async function renderChat() {
@@ -2402,6 +2653,9 @@
                 const cycleDiv = document.createElement('div');
                 cycleDiv.className = 'cycle';
                 cycleDiv.setAttribute('data-cycle-index', cycleIndex);
+                
+                // Extract error from cycle (checking nested structure)
+                const cycleError = extractCycleError(cycle);
 
                 // Request message with attachments
                 if (cycle.request) {
@@ -2411,7 +2665,7 @@
                     // Message row container (button + message)
                     const messageRow = document.createElement('div');
                     messageRow.className = 'message-row';
-                    
+
                     // Edit button (pencil icon) - left of message
                     const editBtn = document.createElement('button');
                     editBtn.className = 'message-action-btn';
@@ -2419,13 +2673,13 @@
                     editBtn.title = 'Edit request';
                     editBtn.addEventListener('click', () => editRequest(cycleIndex));
                     messageRow.appendChild(editBtn);
-                    
+
                     const requestDiv = document.createElement('div');
                     requestDiv.className = 'message user';
                     const textContent = renderMessageText(cycle.request.text || 'Image edit request');
                     requestDiv.appendChild(textContent);
                     messageRow.appendChild(requestDiv);
-                    
+
                     messageGroup.appendChild(messageRow);
 
                     // Show request attachments (aligned right with message)
@@ -2437,18 +2691,18 @@
                 }
 
                 // Progress messages (collapsible) or loading placeholder
-                const isComplete = cycle.response || cycle.error;
+                const isComplete = cycle.response || cycleError;
                 const isGenerating = !isComplete; // Generating if no response/error yet
-                
+
                 if (state.config.showProgress && cycle.progress && cycle.progress.length > 0) {
                     // Show detailed progress
                     const progressContainer = document.createElement('div');
                     progressContainer.className = 'progress-container';
-                    
+
                     // Progress header (toggle)
                     const progressHeader = document.createElement('div');
                     progressHeader.className = 'progress-header';
-                    
+
                     const headerText = document.createElement('span');
                     // Count actual visible items (thinking + commands + feedback items)
                     let visibleCount = 0;
@@ -2466,26 +2720,26 @@
                     });
                     visibleCount += feedbackCount;
                     headerText.textContent = `Progress (${visibleCount} steps)`;
-                    
+
                     const toggleIcon = document.createElement('span');
                     toggleIcon.className = 'toggle-icon';
                     toggleIcon.textContent = '▼';
-                    
+
                     // Auto-collapse if response is complete
                     if (isComplete) {
                         toggleIcon.classList.add('collapsed');
                     }
-                    
+
                     progressHeader.appendChild(headerText);
                     progressHeader.appendChild(toggleIcon);
-                    
+
                     // Progress events container
                     const progressEvents = document.createElement('div');
                     progressEvents.className = 'progress-events';
                     if (isComplete) {
                         progressEvents.classList.add('collapsed');
                     }
-                    
+
                     // Clear all timers for this cycle before rendering to prevent stale timers
                     Object.keys(window).forEach(key => {
                         if (key.startsWith(`__timer_timer-${cycleIndex}-`)) {
@@ -2496,11 +2750,11 @@
                             }
                         }
                     });
-                    
+
                     // Track commands items and their associated execute events
                     const commandsItemsMap = new Map(); // answer index -> { element, text, lines }
                     const executeEventsByAnswer = new Map(); // answer index -> [execute events]
-                    
+
                     // Group events by answer to maintain sequence
                     let currentAnswerIndex = -1;
                     cycle.progress.forEach((prog, idx) => {
@@ -2513,15 +2767,15 @@
                             executeEventsByAnswer.set(currentAnswerIndex, events);
                         }
                     });
-                    
+
                     // Helper function to update command line with timer
                     function updateCommandLine(commandsItem, commandsText, commandsLines, blockData, processedCode, cycleIdx) {
                         const commandsData = commandsItem.querySelector('.progress-item-data');
                         if (!commandsData) return;
-                        
+
                         const lineContainers = commandsData.querySelectorAll('.command-line');
                         const processedLines = processedCode.split('\n').map(l => l.trim());
-                        
+
                         // Normalize code for matching
                         function normalizeCode(code) {
                             return code
@@ -2529,37 +2783,37 @@
                                 .replace(/\s+/g, ' ')
                                 .trim();
                         }
-                        
+
                         let matchedLineIndex = -1;
                         const normalizedProcessed = normalizeCode(processedCode);
-                        
+
                         // Check each command line
                         for (let i = 0; i < commandsLines.length; i++) {
                             const cmdLine = commandsLines[i].trim();
                             if (!cmdLine) continue;
-                            
+
                             const normalizedCmd = normalizeCode(cmdLine);
-                            
-                            if (normalizedProcessed === normalizedCmd || 
+
+                            if (normalizedProcessed === normalizedCmd ||
                                 normalizedProcessed.includes(normalizedCmd) ||
                                 normalizedCmd.includes(normalizedProcessed)) {
                                 matchedLineIndex = i;
                                 break;
                             }
-                            
+
                             const matches = processedLines.some(procLine => {
                                 const normalizedProc = normalizeCode(procLine);
-                                return normalizedProc === normalizedCmd || 
-                                       normalizedProc.includes(normalizedCmd) ||
-                                       normalizedCmd.includes(normalizedProc);
+                                return normalizedProc === normalizedCmd ||
+                                    normalizedProc.includes(normalizedCmd) ||
+                                    normalizedCmd.includes(normalizedProc);
                             });
-                            
+
                             if (matches) {
                                 matchedLineIndex = i;
                                 break;
                             }
                         }
-                        
+
                         // Try function name matching
                         if (matchedLineIndex === -1 && processedLines.length > 0) {
                             const firstProcLine = normalizeCode(processedLines[0]);
@@ -2577,22 +2831,22 @@
                                 }
                             }
                         }
-                        
+
                         if (matchedLineIndex >= 0 && lineContainers[matchedLineIndex]) {
                             const lineContainer = lineContainers[matchedLineIndex];
                             const lineText = lineContainer.querySelector('.command-line-text');
                             const lineTimer = lineContainer.querySelector('.command-line-timer');
-                            
+
                             if (!lineText || !lineTimer) return;
-                            
+
                             const hasStartTime = blockData.start_time !== null && blockData.start_time !== undefined;
                             const hasEndTime = blockData.end_time !== null && blockData.end_time !== undefined;
                             const hasFeedback = blockData.feedback !== null && blockData.feedback !== undefined;
                             const hasError = blockData.error !== null && blockData.error !== undefined;
-                            
+
                             // Remove previous state classes
                             lineContainer.classList.remove('executing', 'success', 'warning', 'error');
-                            
+
                             // Clear any existing timer for this line
                             const timerKey = `timer-${cycleIdx}-${matchedLineIndex}`;
                             if (window[`__timer_${timerKey}`]) {
@@ -2600,15 +2854,15 @@
                                 window[`__timer_${timerKey}`] = null;
                                 delete window[`__timer_${timerKey}`];
                             }
-                            
+
                             if (hasStartTime && !hasEndTime) {
                                 // Executing - start timer
                                 lineContainer.classList.add('executing');
-                                
-                                const startNs = typeof blockData.start_time === 'string' 
-                                    ? parseInt(blockData.start_time, 10) 
+
+                                const startNs = typeof blockData.start_time === 'string'
+                                    ? parseInt(blockData.start_time, 10)
                                     : Number(blockData.start_time);
-                                
+
                                 const updateTimer = () => {
                                     // Check if DOM element still exists (might have been re-rendered)
                                     if (!lineContainer.isConnected || !lineTimer.isConnected) {
@@ -2620,7 +2874,7 @@
                                         }
                                         return;
                                     }
-                                    
+
                                     // Check if this line still has executing class (execution might have completed)
                                     if (!lineContainer.classList.contains('executing')) {
                                         // Execution completed, stop timer
@@ -2631,22 +2885,22 @@
                                         }
                                         return;
                                     }
-                                    
+
                                     const nowNs = Date.now() * 1_000_000;
                                     const elapsedNs = nowNs - startNs;
                                     const elapsedMs = elapsedNs / 1_000_000;
                                     const elapsedSeconds = Math.floor(elapsedMs / 1000);
                                     lineTimer.textContent = ` (${elapsedSeconds}s...)`;
                                 };
-                                
+
                                 // Clear any existing timer first
                                 if (window[`__timer_${timerKey}`]) {
                                     clearInterval(window[`__timer_${timerKey}`]);
                                 }
-                                
+
                                 window[`__timer_${timerKey}`] = setInterval(updateTimer, 1000); // Update every second
                                 updateTimer();
-                                
+
                             } else if (hasEndTime) {
                                 // Execution complete - stop timer and show final duration
                                 if (window[`__timer_${timerKey}`]) {
@@ -2654,23 +2908,23 @@
                                     window[`__timer_${timerKey}`] = null;
                                     delete window[`__timer_${timerKey}`];
                                 }
-                                
+
                                 // Ensure executing class is removed
                                 lineContainer.classList.remove('executing');
-                                
-                                const startNs = typeof blockData.start_time === 'string' 
-                                    ? parseInt(blockData.start_time, 10) 
+
+                                const startNs = typeof blockData.start_time === 'string'
+                                    ? parseInt(blockData.start_time, 10)
                                     : Number(blockData.start_time);
-                                const endNs = typeof blockData.end_time === 'string' 
-                                    ? parseInt(blockData.end_time, 10) 
+                                const endNs = typeof blockData.end_time === 'string'
+                                    ? parseInt(blockData.end_time, 10)
                                     : Number(blockData.end_time);
                                 const durationNs = endNs - startNs;
                                 const durationMs = durationNs / 1_000_000;
                                 const durationSeconds = Math.floor(durationMs / 1000);
                                 const timerText = `${durationSeconds}s`;
-                                
+
                                 lineTimer.textContent = ` (${timerText})`;
-                                
+
                                 if (hasError) {
                                     lineContainer.classList.add('error');
                                 } else if (hasFeedback) {
@@ -2681,132 +2935,132 @@
                             }
                         }
                     }
-                    
+
                     // Process events in order: thinking -> commands -> feedback -> thinking -> commands
                     currentAnswerIndex = -1;
                     cycle.progress.forEach((prog, idx) => {
                         if (prog.type === 'answer' && prog.data && prog.data.text) {
                             currentAnswerIndex++;
                             const { thinking, commands } = extractThinkingAndCommands(prog.data.text);
-                            
+
                             // Create thinking item
                             if (thinking) {
                                 const thinkingItem = document.createElement('div');
                                 thinkingItem.className = 'progress-item thinking';
-                                
+
                                 const thinkingHeader = document.createElement('div');
                                 thinkingHeader.className = 'progress-item-header';
-                                
+
                                 const thinkingMsg = document.createElement('span');
                                 thinkingMsg.textContent = 'Thinking';
                                 thinkingHeader.appendChild(thinkingMsg);
-                                
+
                                 const thinkingIcon = document.createElement('span');
                                 thinkingIcon.className = 'progress-item-icon collapsed';
                                 thinkingIcon.textContent = '▶';
                                 thinkingHeader.appendChild(thinkingIcon);
-                                
+
                                 const thinkingData = document.createElement('div');
                                 thinkingData.className = 'progress-item-data collapsed message-content';
                                 thinkingData.textContent = thinking;
-                                
+
                                 thinkingHeader.addEventListener('click', () => {
                                     thinkingData.classList.toggle('collapsed');
                                     thinkingIcon.classList.toggle('collapsed');
                                 });
-                                
+
                                 thinkingItem.appendChild(thinkingHeader);
                                 thinkingItem.appendChild(thinkingData);
                                 progressEvents.appendChild(thinkingItem);
                             }
-                            
+
                             // Create commands item (gray - not executed yet)
                             if (commands) {
                                 const commandsItem = document.createElement('div');
                                 commandsItem.className = 'progress-item commands';
-                                
+
                                 const commandsHeader = document.createElement('div');
                                 commandsHeader.className = 'progress-item-header';
-                                
+
                                 const commandsMsg = document.createElement('span');
                                 commandsMsg.textContent = 'Commands';
                                 commandsHeader.appendChild(commandsMsg);
-                                
+
                                 const commandsIcon = document.createElement('span');
                                 commandsIcon.className = 'progress-item-icon';
                                 commandsIcon.textContent = '▼';
                                 commandsHeader.appendChild(commandsIcon);
-                                
+
                                 const commandsData = document.createElement('div');
                                 commandsData.className = 'progress-item-data code-content';
-                                
+
                                 // Split commands into lines and create span for each
                                 const commandsLines = commands.split('\n');
                                 commandsLines.forEach((line, lineIdx) => {
                                     const lineContainer = document.createElement('div');
                                     lineContainer.className = 'command-line';
                                     lineContainer.dataset.lineIndex = lineIdx;
-                                    
+
                                     const lineText = document.createElement('span');
                                     lineText.className = 'command-line-text';
                                     lineText.textContent = line;
-                                    
+
                                     const lineTimer = document.createElement('span');
                                     lineTimer.className = 'command-line-timer';
-                                    
+
                                     lineContainer.appendChild(lineText);
                                     lineContainer.appendChild(lineTimer);
                                     commandsData.appendChild(lineContainer);
                                 });
-                                
+
                                 commandsHeader.addEventListener('click', () => {
                                     commandsData.classList.toggle('collapsed');
                                     commandsIcon.classList.toggle('collapsed');
                                 });
-                                
+
                                 commandsItem.appendChild(commandsHeader);
                                 commandsItem.appendChild(commandsData);
                                 progressEvents.appendChild(commandsItem);
-                                
+
                                 // Store for later updates
                                 commandsItemsMap.set(currentAnswerIndex, {
                                     element: commandsItem,
                                     text: commands,
                                     lines: commandsLines
                                 });
-                                
+
                                 // Process execute events for this answer
                                 const executeEvents = executeEventsByAnswer.get(currentAnswerIndex) || [];
                                 executeEvents.forEach(({ prog: executeProg }) => {
                                     const blockData = executeProg.data;
                                     const processedCode = blockData.processed_code || blockData.generated_code || '';
-                                    
+
                                     if (processedCode) {
                                         updateCommandLine(commandsItem, commands, commandsLines, blockData, processedCode, cycleIndex);
                                     }
-                                    
+
                                     // Create feedback item right after commands if present
                                     if (blockData.feedback) {
                                         const feedbackItem = document.createElement('div');
                                         feedbackItem.className = 'progress-item feedback';
-                                        
+
                                         const feedbackHeader = document.createElement('div');
                                         feedbackHeader.className = 'progress-item-header';
-                                        
+
                                         const feedbackMsg = document.createElement('span');
                                         const feedbackType = blockData.feedback.type || 'Feedback';
                                         const severity = blockData.feedback.severity || 'info';
                                         feedbackMsg.textContent = `Feedback (${severity}): ${feedbackType}`;
                                         feedbackHeader.appendChild(feedbackMsg);
-                                        
+
                                         const feedbackIcon = document.createElement('span');
                                         feedbackIcon.className = 'progress-item-icon collapsed';
                                         feedbackIcon.textContent = '▶';
                                         feedbackHeader.appendChild(feedbackIcon);
-                                        
+
                                         const feedbackData = document.createElement('div');
                                         feedbackData.className = 'progress-item-data collapsed message-content';
-                                        
+
                                         // Show feedback text if available
                                         if (blockData.feedback.text) {
                                             feedbackData.textContent = blockData.feedback.text;
@@ -2815,7 +3069,7 @@
                                             feedbackData.style.fontStyle = 'italic';
                                             feedbackData.style.color = '#999';
                                         }
-                                        
+
                                         // Show feedback details if available
                                         if (blockData.feedback.details && Object.keys(blockData.feedback.details).length > 0) {
                                             const detailsDiv = document.createElement('div');
@@ -2825,13 +3079,13 @@
                                             detailsDiv.style.borderRadius = '4px';
                                             detailsDiv.style.fontSize = '11px';
                                             detailsDiv.style.fontFamily = "'Courier New', monospace";
-                                            
+
                                             const detailsHeader = document.createElement('div');
                                             detailsHeader.style.fontWeight = '600';
                                             detailsHeader.style.marginBottom = '4px';
                                             detailsHeader.textContent = 'Details:';
                                             detailsDiv.appendChild(detailsHeader);
-                                            
+
                                             const detailsContent = document.createElement('div');
                                             detailsContent.style.whiteSpace = 'pre-wrap';
                                             try {
@@ -2840,10 +3094,10 @@
                                                 detailsContent.textContent = String(blockData.feedback.details);
                                             }
                                             detailsDiv.appendChild(detailsContent);
-                                            
+
                                             feedbackData.appendChild(detailsDiv);
                                         }
-                                        
+
                                         // Show function if available
                                         if (blockData.feedback.function) {
                                             const funcDiv = document.createElement('div');
@@ -2853,12 +3107,12 @@
                                             funcDiv.textContent = `Function: ${blockData.feedback.function}`;
                                             feedbackData.appendChild(funcDiv);
                                         }
-                                        
+
                                         feedbackHeader.addEventListener('click', () => {
                                             feedbackData.classList.toggle('collapsed');
                                             feedbackIcon.classList.toggle('collapsed');
                                         });
-                                        
+
                                         feedbackItem.appendChild(feedbackHeader);
                                         feedbackItem.appendChild(feedbackData);
                                         progressEvents.appendChild(feedbackItem);
@@ -2867,13 +3121,13 @@
                             }
                         }
                     });
-                    
+
                     // Toggle on click
                     progressHeader.addEventListener('click', () => {
                         progressEvents.classList.toggle('collapsed');
                         toggleIcon.classList.toggle('collapsed');
                     });
-                    
+
                     progressContainer.appendChild(progressHeader);
                     progressContainer.appendChild(progressEvents);
                     cycleDiv.appendChild(progressContainer);
@@ -2881,14 +3135,14 @@
                     // Show loading placeholder when progress is hidden
                     const loadingPlaceholder = document.createElement('div');
                     loadingPlaceholder.className = 'loading-placeholder';
-                    
+
                     const loadingSpinner = document.createElement('div');
                     loadingSpinner.className = 'loading-spinner';
-                    
+
                     const loadingText = document.createElement('span');
                     loadingText.className = 'loading-text';
                     loadingText.textContent = 'Generating response...';
-                    
+
                     loadingPlaceholder.appendChild(loadingSpinner);
                     loadingPlaceholder.appendChild(loadingText);
                     cycleDiv.appendChild(loadingPlaceholder);
@@ -2902,13 +3156,13 @@
                     // Message row container (message + button)
                     const messageRow = document.createElement('div');
                     messageRow.className = 'message-row';
-                    
+
                     const responseDiv = document.createElement('div');
                     responseDiv.className = 'message assistant';
                     const textContent = renderMessageText(cycle.response.text || 'Edit complete');
                     responseDiv.appendChild(textContent);
                     messageRow.appendChild(responseDiv);
-                    
+
                     // Regenerate button (loop icon) - right of message
                     const regenerateBtn = document.createElement('button');
                     regenerateBtn.className = 'message-action-btn';
@@ -2916,7 +3170,7 @@
                     regenerateBtn.title = 'Regenerate response';
                     regenerateBtn.addEventListener('click', () => regenerateResponse(cycleIndex));
                     messageRow.appendChild(regenerateBtn);
-                    
+
                     messageGroup.appendChild(messageRow);
 
                     // Show response attachments (aligned left with message)
@@ -2927,12 +3181,21 @@
                     cycleDiv.appendChild(messageGroup);
                 }
 
-                // Error message
-                if (cycle.error) {
+                // Error message (displayed in a message group similar to response)
+                if (cycleError) {
+                    const messageGroup = document.createElement('div');
+                    messageGroup.className = 'message-group assistant';
+
+                    const messageRow = document.createElement('div');
+                    messageRow.className = 'message-row';
+
                     const errorDiv = document.createElement('div');
                     errorDiv.className = 'message error';
-                    errorDiv.textContent = cycle.error;
-                    cycleDiv.appendChild(errorDiv);
+                    errorDiv.textContent = cycleError || 'An error occurred';
+                    messageRow.appendChild(errorDiv);
+
+                    messageGroup.appendChild(messageRow);
+                    cycleDiv.appendChild(messageGroup);
                 }
 
                 container.appendChild(cycleDiv);
@@ -3021,7 +3284,7 @@
 
                     // Decode chunk and append to buffer
                     buffer += decoder.decode(value, { stream: true });
-                    
+
                     // Split buffer by newlines, keeping incomplete line in buffer
                     const lines = buffer.split('\n');
                     buffer = lines.pop() || '';  // Keep the last (potentially incomplete) line in buffer
@@ -3029,14 +3292,14 @@
                     // Process complete lines
                     for (const line of lines) {
                         if (!line.trim()) continue;  // Skip empty lines
-                        
+
                         if (line.startsWith('data: ')) {
                             try {
                                 const jsonStr = line.slice(6).trim();
                                 if (!jsonStr) continue;  // Skip empty data lines
-                                
+
                                 const data = JSON.parse(jsonStr);
-                                
+
                                 if (data.type === 'complete') {
                                     // Update cycle with response (inline content)
                                     updateLastCycle({
@@ -3065,7 +3328,7 @@
                         }
                     }
                 }
-                
+
                 // Process any remaining data in buffer after stream ends
                 if (buffer.trim()) {
                     if (buffer.startsWith('data: ')) {
@@ -3073,7 +3336,7 @@
                             const jsonStr = buffer.slice(6).trim();
                             if (jsonStr) {
                                 const data = JSON.parse(jsonStr);
-                                
+
                                 if (data.type === 'complete') {
                                     updateLastCycle({
                                         response: data.data.message,
@@ -3108,13 +3371,13 @@
         async function loadResponseImageInline(figObject) {
             try {
                 state.currentFigObject = figObject;
-                
+
                 // Add to uploaded images if not already there
                 const existingIndex = state.uploadedFigObjects.findIndex(obj => obj.id === figObject.id);
                 if (existingIndex === -1) {
                     state.uploadedFigObjects.push(figObject);
                 }
-                
+
                 await loadFigObject(figObject);
                 saveFigFile();
                 updateImageCount();
@@ -3132,13 +3395,13 @@
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     const figObject = await createFigObjectFromImageFile(file);
-                    
+
                     // Add to uploaded images list
                     const existingIndex = state.uploadedFigObjects.findIndex(obj => obj.id === figObject.id);
                     if (existingIndex === -1) {
                         state.uploadedFigObjects.push(figObject);
                     }
-                    
+
                     // Load the first one into the editor
                     if (i === 0) {
                         state.currentImage = file;
@@ -3149,7 +3412,7 @@
                         enableControls();
                     }
                 }
-                
+
                 updateImageCount();
                 await renderGallery();
                 console.log(`${files.length} image(s) uploaded`);
@@ -3178,13 +3441,13 @@
             state.config.maxLlmExchanges = parseInt(document.getElementById('maxLlmExchanges').value);
             state.config.showProgress = document.getElementById('showProgress').checked;
             state.config.enableInteraction = document.getElementById('enableInteraction').checked;
-            
+
             // Save to localStorage
             localStorage.setItem('mic2e-demo-config', JSON.stringify(state.config));
-            
+
             // Update interaction features based on setting
             updateInteractionFeatures();
-            
+
             // Re-render chat if progress visibility changed
             renderChat();
         }
@@ -3195,7 +3458,7 @@
                 try {
                     const config = JSON.parse(saved);
                     state.config = { ...state.config, ...config };
-                    
+
                     // Update form inputs with saved values
                     document.getElementById('llmProvider').value = config.llmProvider || 'google';
                     document.getElementById('apiKey').value = config.apiKey || '';
@@ -3204,7 +3467,7 @@
                     document.getElementById('maxLlmExchanges').value = config.maxLlmExchanges || 2;
                     document.getElementById('showProgress').checked = config.showProgress !== undefined ? config.showProgress : true;
                     document.getElementById('enableInteraction').checked = config.enableInteraction !== undefined ? config.enableInteraction : true;
-                    
+
                     // Update interaction features based on loaded setting
                     updateInteractionFeatures();
                 } catch (e) {
@@ -3216,15 +3479,15 @@
         function setupConfigPanel() {
             const toggleBtn = document.getElementById('toggleConfig');
             const panel = document.getElementById('configPanel');
-            
+
             // Load saved config
             loadConfigFromStorage();
-            
+
             toggleBtn.addEventListener('click', () => {
                 const isVisible = panel.classList.toggle('visible');
                 toggleBtn.classList.toggle('active', isVisible);
             });
-            
+
             // Save config on change
             document.getElementById('llmProvider').addEventListener('change', loadConfigFromForm);
             document.getElementById('apiKey').addEventListener('input', loadConfigFromForm);
@@ -3233,7 +3496,7 @@
             document.getElementById('maxLlmExchanges').addEventListener('input', loadConfigFromForm);
             document.getElementById('showProgress').addEventListener('change', loadConfigFromForm);
             document.getElementById('enableInteraction').addEventListener('change', loadConfigFromForm);
-            
+
             // Update model placeholder based on provider
             document.getElementById('llmProvider').addEventListener('change', (e) => {
                 const modelInput = document.getElementById('llmModel');
@@ -3266,7 +3529,7 @@
             const json = JSON.stringify(sessionData, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            
+
             const a = document.createElement('a');
             a.href = url;
             a.download = `mic2e-session-${Date.now()}.json`;
@@ -3274,7 +3537,7 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
+
             console.log('Session saved successfully');
         }
 
@@ -3282,34 +3545,34 @@
             try {
                 const text = await file.text();
                 const sessionData = JSON.parse(text);
-                
+
                 // Validate version
                 if (!sessionData.version) {
                     throw new Error('Invalid session file format');
                 }
-                
+
                 // Restore state
                 state.cycles = sessionData.cycles || [];
                 state.context = sessionData.context || null;
                 state.uploadedFigObjects = sessionData.uploadedFigObjects || [];
                 state.currentFigObject = sessionData.currentFigObject || null;
-                
+
                 // Render chat
                 await renderChat();
-                
+
                 // Render gallery
                 await renderGallery();
-                
+
                 // Load current image into canvas if exists
                 if (state.currentFigObject) {
                     await loadFigObject(state.currentFigObject);
                     saveFigFile();
                     enableControls();
                 }
-                
+
                 updateImageCount();
                 updateSessionButtonStates();
-                
+
                 console.log('Session loaded successfully');
             } catch (e) {
                 console.error('Failed to load session:', e);
@@ -3323,7 +3586,7 @@
                     return;
                 }
             }
-            
+
             // Clear all chat state
             state.cycles = [];
             state.context = null;
@@ -3331,18 +3594,18 @@
             state.currentFigObject = null;
             state.references = [];
             state.editingCycleIndex = null;
-            
+
             // Clear UI
             state.fabricCanvas.clear();
             document.getElementById('messageInput').innerHTML = '';
-            
+
             // Re-render
             renderChat();
             renderGallery();
             updateImageCount();
             updateSendButtonState();
             updateSessionButtonStates();
-            
+
             console.log('New chat started');
         }
 
@@ -3352,7 +3615,7 @@
         setupConfigPanel();
         loadChatFromStorage();
         updateSessionButtonStates();
-        
+
         // Setup session controls
         document.getElementById('saveBtn').addEventListener('click', saveSession);
         document.getElementById('newChatBtn').addEventListener('click', newChat);
@@ -3363,6 +3626,10 @@
                 e.target.value = ''; // Reset input so same file can be loaded again
             }
         });
+
+        // Setup debug cycles modal
+        setupDebugModal();
     </script>
 </body>
+
 </html>
