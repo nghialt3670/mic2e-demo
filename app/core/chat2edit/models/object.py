@@ -13,3 +13,9 @@ class Object(FabricImage, Referent):
     image_id: Optional[str] = Field(
         default=None, description="ID of the image this object belongs to"
     )
+    selectable: bool = Field(
+        default=True, description="Whether the object is selectable"
+    )
+    evented: bool = Field(
+        default=True, description="Whether the object receives events"
+    )

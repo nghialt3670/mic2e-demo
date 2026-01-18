@@ -20,5 +20,7 @@ def create_object_from_image_and_mask(
     obj.height = obj_height
     obj.left = bbox[0] + obj_width / 2 - image.width / 2
     obj.top = bbox[1] + obj_height / 2 - image.height / 2
+    obj.selectable = True
+    obj.evented = True
 
     return obj

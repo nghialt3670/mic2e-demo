@@ -1064,6 +1064,83 @@
         #imageInput {
             display: none;
         }
+
+        .canvas-section {
+            position: relative;
+        }
+
+        .filter-panel {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            width: 300px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+        }
+
+        .filter-header {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-target-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .filter-target-badge.active {
+            background: #007bff;
+            color: white;
+        }
+
+        .filter-group {
+            margin-bottom: 12px;
+        }
+
+        .filter-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .filter-range {
+            width: 100%;
+            height: 4px;
+            background: #dee2e6;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .filter-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #007bff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-range::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
     </style>
 </head>
 
@@ -1084,14 +1161,42 @@
                 <div class="gallery-title">Uploaded Images (click to edit):</div>
                 <div class="gallery-items" id="galleryItems"></div>
             </div>
+            <div class="filter-panel" id="filterPanel" style="display: none;">
+                <div class="filter-header">
+                    <span>Image Adjustments</span>
+                    <span class="filter-target-badge" id="filterTargetBadge">Global</span>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">
+                        <span>Brightness</span>
+                        <span id="brightnessVal">0</span>
+                    </div>
+                    <input type="range" class="filter-range" id="brightnessRange" min="-100" max="100" value="0">
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">
+                        <span>Contrast</span>
+                        <span id="contrastVal">0</span>
+                    </div>
+                    <input type="range" class="filter-range" id="contrastRange" min="-100" max="100" value="0">
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">
+                        <span>Saturation</span>
+                        <span id="saturationVal">0</span>
+                    </div>
+                    <input type="range" class="filter-range" id="saturationRange" min="-100" max="100" value="0">
+                </div>
+            </div>
             <div class="canvas-controls">
                 <label for="imageInput" class="file-input-label">
                     📁 Upload Image(s)
                 </label>
                 <input type="file" id="imageInput" accept="image/*" multiple>
-                < <button class="btn" id="clearBtn" disabled>Clear Annotations</button>
-                    <button class="btn" id="undoBtn" disabled>Undo</button>
-                    <button class="btn" id="clearAllBtn" disabled>Clear All Images</button>
+                <button class="btn" id="toggleFilterBtn" disabled>🎨 Filters</button>
+                <button class="btn" id="clearBtn" disabled>Clear Annotations</button>
+                <button class="btn" id="undoBtn" disabled>Undo</button>
+                <button class="btn" id="clearAllBtn" disabled>Clear All Images</button>
             </div>
         </div>
 
@@ -1111,12 +1216,7 @@
             <div class="chat-messages" id="chatMessages">
                 <div class="empty-state">
                     <p>Start chatting with the AI!<br><br>
-                        <strong>Optional:</strong> Upload an image and draw annotations<br><br>
-                        <strong>Canvas Tips:</strong><br>
-                        • Single click: Add a point<br>
-                        • Double click: Select entire image<br>
-                        • Click and drag: Draw scribble or box<br>
-                        • Click then drag: Create box<br><br>
+                        <strong>Optional:</strong> Upload an image to get started<br><br>
                         <em>Note: Chat history clears on page reload</em>
                     </p>
                 </div>
@@ -1730,6 +1830,128 @@
             }
         }
 
+        // ===== Filter Controls =====
+        function setupFilterControls() {
+            const filters = ['brightness', 'contrast', 'saturation'];
+            filters.forEach(type => {
+                const slider = document.getElementById(`${type}Range`);
+                const valueDisplay = document.getElementById(`${type}Val`);
+
+                if (slider) {
+                    slider.addEventListener('input', (e) => {
+                        const val = parseInt(e.target.value);
+                        valueDisplay.textContent = val;
+                        applyFilter(type, val / 100);
+                    });
+                }
+            });
+
+            // Toggle visibility
+            const toggleBtn = document.getElementById('toggleFilterBtn');
+            const panel = document.getElementById('filterPanel');
+            if (toggleBtn && panel) {
+                toggleBtn.addEventListener('click', () => {
+                    const isVisible = panel.style.display !== 'none';
+                    panel.style.display = isVisible ? 'none' : 'block';
+                    toggleBtn.classList.toggle('active', !isVisible);
+                });
+            }
+        }
+
+        function getActiveFilterTarget() {
+            if (!state.fabricCanvas) return null;
+            const active = state.fabricCanvas.getActiveObject();
+            if (active && active.type !== 'group') {
+                // Case-insensitive check for 'image' type
+                const type = active.type.toLowerCase();
+                if (type === 'image' || active instanceof FabricImage) {
+                    return active;
+                }
+            }
+            // Global: Main image inside the group
+            const fig = state.fabricCanvas.getObjects()[0];
+            if (fig && fig.getObjects().length > 0) {
+                return fig.getObjects()[0];
+            }
+            return null;
+        }
+
+        function applyFilter(type, value) {
+            const target = getActiveFilterTarget();
+            if (!target) return;
+
+            const filterTypeMap = {
+                brightness: 'Brightness',
+                contrast: 'Contrast',
+                saturation: 'Saturation'
+            };
+            const fabricType = filterTypeMap[type];
+            if (!target.filters) target.filters = [];
+
+            // Find existing filter of this type
+            const index = target.filters.findIndex(f => f.type === fabricType);
+
+            const options = {};
+            options[type] = value;
+
+            if (index > -1) {
+                target.filters[index][type] = value;
+            } else {
+                // Fabric v6 uses fabric.filters, v5 uses fabric.Image.filters
+                const filterNamespace = fabric.filters || (fabric.Image && fabric.Image.filters);
+                if (filterNamespace && filterNamespace[fabricType]) {
+                    const filter = new filterNamespace[fabricType](options);
+                    target.filters.push(filter);
+                }
+            }
+
+            target.applyFilters();
+
+            // Mark both target and parent group as dirty
+            target.dirty = true;
+            const fig = state.fabricCanvas.getObjects()[0];
+            if (fig && fig.type === 'group') {
+                fig.dirty = true;
+            }
+
+            state.fabricCanvas.requestRenderAll();
+            saveFigFile();
+        }
+
+        function updateFilterUI() {
+            const target = getActiveFilterTarget();
+            const badge = document.getElementById('filterTargetBadge');
+            const active = state.fabricCanvas && state.fabricCanvas.getActiveObject();
+
+            // Update badge
+            if (active && active.type !== 'group' && (active.type === 'image' || active instanceof FabricImage)) {
+                badge.textContent = 'Selection';
+                badge.classList.add('active');
+            } else {
+                badge.textContent = 'Global';
+                badge.classList.remove('active');
+            }
+
+            if (!target) return;
+
+            // Update sliders based on target's filters
+            const filters = ['brightness', 'contrast', 'saturation'];
+            const filterTypeMap = {
+                brightness: 'Brightness',
+                contrast: 'Contrast',
+                saturation: 'Saturation'
+            };
+
+            filters.forEach(type => {
+                const fabricType = filterTypeMap[type];
+                const filter = target.filters ? target.filters.find(f => f.type === fabricType) : null;
+                const val = filter ? (filter[type] * 100) : 0;
+
+                document.getElementById(`${type}Range`).value = val;
+                document.getElementById(`${type}Val`).textContent = Math.round(val);
+            });
+        }
+
         // ===== Canvas Setup =====
         function setupCanvas() {
             const canvasEl = document.getElementById('canvas');
@@ -1738,12 +1960,44 @@
                 backgroundColor: '#ffffff',
             });
 
+            // Filter listeners
+            state.fabricCanvas.on('selection:created', updateFilterUI);
+            state.fabricCanvas.on('selection:updated', updateFilterUI);
+            state.fabricCanvas.on('selection:cleared', updateFilterUI);
+
             setupInteractions(state.fabricCanvas);
         }
 
+        // ===== UI Helpers =====
+        function getEmptyStateMessage() {
+            if (state.config.enableInteraction) {
+                return `Start chatting with the AI!<br><br>
+                    <strong>Optional:</strong> Upload an image and draw annotations<br><br>
+                    <strong>Canvas Tips:</strong><br>
+                    • Single click: Add a point<br>
+                    • Double click: Select entire image<br>
+                    • Click and drag: Draw scribble or box<br>
+                    • Click then drag: Create box<br><br>
+                    <em>Note: Chat history clears on page reload</em>`;
+            } else {
+                return `Start chatting with the AI!<br><br>
+                    <strong>Optional:</strong> Upload an image to edit<br><br>
+                    <em>Note: Interactive annotations are disabled. Enable them in the config panel to draw points, boxes, and scribbles.</em><br><br>
+                    <em>Chat history clears on page reload</em>`;
+            }
+        }
+
         function updateInteractionFeatures() {
-            // This function is called when the interaction setting changes
-            // The actual disabling is done by checking state.config.enableInteraction in event handlers
+            // Hide Clear Annotations button when interaction is disabled
+            const clearBtn = document.getElementById('clearBtn');
+            if (clearBtn) {
+                clearBtn.style.display = state.config.enableInteraction ? 'inline-block' : 'none';
+            }
+
+            // Update empty state message if chat is empty
+            if (state.cycles.length === 0) {
+                renderChat();
+            }
         }
 
         function setupInteractions(canvas) {
@@ -1753,6 +2007,10 @@
                 if (!state.config.enableInteraction) return;
                 const fig = canvas.getObjects()[0];
                 if (!fig) return;
+
+                // If user clicked on a specific object (e.g. segmented mask) inside the group, 
+                // let Fabric handle the selection/drag, don't start drawing.
+                if (e.target && e.target !== fig) return;
 
                 const now = Date.now();
                 state.mouseDownPoint = new Point(e.pointer.x, e.pointer.y);
@@ -2116,7 +2374,7 @@
                 id: figObject.id,
                 subTargetCheck: true,
                 selectable: false,
-                evented: false,
+                evented: true,
                 interactive: true,
             });
 
@@ -2217,6 +2475,8 @@
         function enableControls() {
             document.getElementById('clearBtn').disabled = false;
             document.getElementById('undoBtn').disabled = false;
+            document.getElementById('toggleFilterBtn').disabled = false;
+            updateInteractionFeatures();
             updateSendButtonState();
         }
 
@@ -2611,7 +2871,7 @@
             if (cycle.error) {
                 return cycle.error;
             }
-            
+
             // Check nested cycle structure for exchange errors
             if (cycle.cycle && cycle.cycle.cycles && Array.isArray(cycle.cycle.cycles)) {
                 for (const subCycle of cycle.cycle.cycles) {
@@ -2624,7 +2884,7 @@
                     }
                 }
             }
-            
+
             return null;
         }
 
@@ -2635,14 +2895,7 @@
             if (state.cycles.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <p>Start chatting with the AI!<br><br>
-                        <strong>Optional:</strong> Upload an image and draw annotations<br><br>
-                        <strong>Canvas Tips:</strong><br>
-                        • Single click: Add a point<br>
-                        • Double click: Select entire image<br>
-                        • Click and drag: Draw scribble or box<br>
-                        • Click then drag: Create box<br><br>
-                        <em>Note: Chat history clears on page reload</em></p>
+                        <p>${getEmptyStateMessage()}</p>
                     </div>
                 `;
                 return;
@@ -2653,7 +2906,7 @@
                 const cycleDiv = document.createElement('div');
                 cycleDiv.className = 'cycle';
                 cycleDiv.setAttribute('data-cycle-index', cycleIndex);
-                
+
                 // Extract error from cycle (checking nested structure)
                 const cycleError = extractCycleError(cycle);
 
@@ -3428,6 +3681,10 @@
             updateImageCount();
             await renderGallery();
             document.getElementById('clearAllBtn').disabled = true;
+            document.getElementById('clearBtn').disabled = true;
+            document.getElementById('undoBtn').disabled = true;
+            document.getElementById('toggleFilterBtn').disabled = true;
+            document.getElementById('filterPanel').style.display = 'none';
             // Send button stays enabled - user can still send text-only messages
         });
         document.getElementById('sendBtn').addEventListener('click', sendMessage);
@@ -3611,6 +3868,7 @@
 
         // ===== Initialize =====
         setupCanvas();
+        setupFilterControls();
         setupMessageInputWatcher();
         setupConfigPanel();
         loadChatFromStorage();
